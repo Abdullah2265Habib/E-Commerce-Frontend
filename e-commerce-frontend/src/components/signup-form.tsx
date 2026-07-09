@@ -13,6 +13,7 @@ import {
   FieldSeparator,
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
+import { signIn } from "next-auth/react"
 
 const signupSchema = z
   .object({
@@ -35,7 +36,7 @@ export function SignupForm({
   const {
     register,
     handleSubmit,
-    setError, // 👈 Added to programmatically map backend/server errors to the form
+    setError,
     formState: { errors, isSubmitting },
   } = useForm<SignupFormValues>({
     resolver: zodResolver(signupSchema),
@@ -50,7 +51,7 @@ export function SignupForm({
   const onSubmit = async (data: SignupFormValues) => {
     try {
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_API_URL}/auth/register`, { 
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_API_URL}/auth/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -69,7 +70,14 @@ export function SignupForm({
       }
 
       console.log("Account successfully generated:", result)
-      alert("Registration successful!") 
+      alert("Registration successful!")
+
+
+      await signIn("credentials", {
+        email: data.email,
+        password: data.password,
+        callbackUrl: "../",
+      })
 
     } catch (error: any) {
       setError("root", {
@@ -80,9 +88,9 @@ export function SignupForm({
   }
 
   return (
-    <form 
+    <form
       onSubmit={handleSubmit(onSubmit)}
-      className={cn("flex flex-col gap-6 w-full max-w-2xl mx-auto", className)} 
+      className={cn("flex flex-col gap-6 w-full max-w-2xl mx-auto", className)}
       {...props}
     >
       <FieldGroup>
@@ -102,10 +110,10 @@ export function SignupForm({
 
         <Field>
           <FieldLabel htmlFor="name">Full Name</FieldLabel>
-          <Input 
-            id="name" 
-            type="text" 
-            placeholder="John Doe" 
+          <Input
+            id="name"
+            type="text"
+            placeholder="John Doe"
             {...register("name")}
           />
           {errors.name && (
@@ -118,10 +126,10 @@ export function SignupForm({
 
         <Field>
           <FieldLabel htmlFor="email">Email</FieldLabel>
-          <Input 
-            id="email" 
-            type="email" 
-            placeholder="m@example.com" 
+          <Input
+            id="email"
+            type="email"
+            placeholder="m@example.com"
             {...register("email")}
           />
           {errors.email ? (
@@ -138,9 +146,9 @@ export function SignupForm({
 
         <Field>
           <FieldLabel htmlFor="password">Password</FieldLabel>
-          <Input 
-            id="password" 
-            type="password" 
+          <Input
+            id="password"
+            type="password"
             {...register("password")}
           />
           <FieldDescription className={cn(errors.password && "text-destructive font-medium")}>
@@ -151,9 +159,9 @@ export function SignupForm({
 
         <Field>
           <FieldLabel htmlFor="confirm-password">Confirm Password</FieldLabel>
-          <Input 
-            id="confirm-password" 
-            type="password" 
+          <Input
+            id="confirm-password"
+            type="password"
             {...register("confirmPassword")}
           />
           {errors.confirmPassword && (
