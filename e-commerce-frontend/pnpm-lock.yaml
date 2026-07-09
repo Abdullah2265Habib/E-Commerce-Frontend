@@ -11,6 +11,9 @@ importers:
       next:
         specifier: 16.2.10
         version: 16.2.10(@babel/core@7.29.7)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      postcss:
+        specifier: ^8.5.16
+        version: 8.5.16
       react:
         specifier: 19.2.4
         version: 19.2.4
@@ -19,7 +22,7 @@ importers:
         version: 19.2.4(react@19.2.4)
     devDependencies:
       '@tailwindcss/postcss':
-        specifier: ^4
+        specifier: ^4.3.2
         version: 4.3.2
       '@types/node':
         specifier: ^20
@@ -37,7 +40,7 @@ importers:
         specifier: 16.2.10
         version: 16.2.10(@typescript-eslint/parser@8.63.0(eslint@9.39.4(jiti@2.7.0))(typescript@5.9.3))(eslint@9.39.4(jiti@2.7.0))(typescript@5.9.3)
       tailwindcss:
-        specifier: ^4
+        specifier: ^4.3.2
         version: 4.3.2
       typescript:
         specifier: ^5
