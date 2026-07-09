@@ -32,9 +32,9 @@ export default function RootLayout({
 
         <footer className="w-full border-t border-slate-200 bg-white py-6 text-center">
           <nav className="mb-2 flex justify-center gap-4 text-sm font-medium text-slate-500">
-            <Link href="/login" className="hover:text-blue-600 transition-colors">Login</Link>
+            <Link href="/login" className="hover:text-black-600 transition-colors">Login</Link>
             <span className="text-slate-300">|</span>
-            <Link href="/signup" className="hover:text-blue-600 transition-colors">Sign Up</Link>
+            <Link href="/signup" className="hover:text-black-600 transition-colors">Sign Up</Link>
           </nav>
           <p className="text-xs text-slate-400">© 2026 My App. All rights reserved.</p>
         </footer>
