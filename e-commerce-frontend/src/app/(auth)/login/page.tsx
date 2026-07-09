@@ -107,14 +107,14 @@ export default function Login() {
                 control={form.control}
                 render={({ field, fieldState }) => (
                   <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel className="text-sm font-semibold tracking-wide text-slate-700 mb-1.5">
+                    <FieldLabel className="text-base font-semibold tracking-wide text-slate-700 mb-1.5">
                       Email
                     </FieldLabel>
                     <Input
                       {...field}
                       type="email"
                       placeholder="Enter your email"
-                      className="h-12 text-base px-4 border border-slate-200 bg-slate-50/50 hover:bg-slate-50 hover:border-slate-300 focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 rounded-xl transition-all duration-200"
+                      className="h-12 text-lg px-4 border border-slate-200 bg-slate-50/50 hover:bg-slate-50 hover:border-slate-300 focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 rounded-xl transition-all duration-200"
                       aria-invalid={fieldState.invalid}
                       disabled={isSubmitting}
                     />
@@ -129,14 +129,14 @@ export default function Login() {
                 control={form.control}
                 render={({ field, fieldState }) => (
                   <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel className="text-sm font-semibold tracking-wide text-slate-700 mb-1.5">
+                    <FieldLabel className="text-base font-semibold tracking-wide text-slate-700 mb-1.5">
                       Password
                     </FieldLabel>
                     <Input
                       {...field}
                       type="password"
                       placeholder="Enter your password"
-                      className="h-12 text-base px-4 border border-slate-200 bg-slate-50/50 hover:bg-slate-50 hover:border-slate-300 focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 rounded-xl transition-all duration-200"
+                      className="h-12 text-lg px-4 border border-slate-200 bg-slate-50/50 hover:bg-slate-50 hover:border-slate-300 focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 rounded-xl transition-all duration-200"
                       aria-invalid={fieldState.invalid}
                       disabled={isSubmitting}
                     />
