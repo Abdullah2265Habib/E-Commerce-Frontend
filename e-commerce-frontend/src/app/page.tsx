@@ -11,7 +11,7 @@ export default function Home() {
         <button>Signup</button>
       </Link>
       <br></br>
-      <Link href="/category-new">
+      <Link href="/category">
         <button>Category</button>
       </Link>
     </div>
