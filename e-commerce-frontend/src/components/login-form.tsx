@@ -14,12 +14,14 @@ import {
   FieldSeparator,
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
+import { signIn } from "next-auth/react"
 
 const loginSchema = z.object({
   email: z.string().min(1, "Email is required").email("Invalid email address"),
   password: z.string().min(1, "Password is required"),
 })
-
+          //http://localhost:3001/api/auth/session
+          //http://localhost:3001/api/auth/providers
 type LoginFormValues = z.infer<typeof loginSchema>
 
 export function LoginForm({
@@ -43,37 +45,26 @@ export function LoginForm({
 
   const onSubmit = async (data: LoginFormValues) => {
     try {
-
-      const apiUrl = `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/auth/login`
-      
-      const response = await fetch(apiUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email: data.email,
-          password: data.password,
-        }),
+      const result = await signIn("credentials", {
+        email: data.email,
+        password: data.password,
+        redirect: false,
       })
 
-      const result = await response.json()
-
-      if (!response.ok) {
-
-        throw new Error(result.message || "Invalid credentials provided.")
+      if (result?.error) {
+        setError("root", {
+          type: "server",
+          message: "Invalid email or password.",
+        })
+        return
       }
 
-      console.log("Logged in successfully:", result)
-      alert("Login successful!")
-      
-
-
-    } catch (error: any) {
-
+      // Redirect to home on success
+      window.location.href = "/"
+    } catch {
       setError("root", {
         type: "server",
-        message: error.message || "Failed to establish a secure gateway connection.",
+        message: "Something went wrong. Please try again.",
       })
     }
   }
