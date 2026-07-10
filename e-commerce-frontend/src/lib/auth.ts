@@ -39,6 +39,7 @@ export const authOptions: NextAuthOptions = {
             id: user.id,
             name: user.name,
             email: user.email,
+            role: user.role,
           }
         } catch {
           return null
@@ -55,17 +56,23 @@ export const authOptions: NextAuthOptions = {
     // 1. When user logs in, save their data into the JWT token
     async jwt({ token, user }) {
       if (user) {
-        token.id = user.id
+        token._id = user.id
         token.name = user.name
         token.email = user.email
+        token.role = user.role
       }
       return token
     },
     // 2. When session is accessed, copy token data into session.user
     async session({ session, token }) {
-      if (token) {
-        session.user.name = token.name
-        session.user.email = token.email as string
+      if (token && session.user) {
+        session.user = {
+          ...session.user,
+          id: token._id as string,
+          name: token.name,
+          email: token.email as string,
+          role: token.role as string,
+        }
       }
       return session
     },
