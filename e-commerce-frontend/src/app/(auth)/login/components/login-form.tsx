@@ -14,7 +14,7 @@ import {
   FieldSeparator,
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
-import { signIn } from "next-auth/react"
+import { getSession, signIn } from "next-auth/react"
 import { toast } from "sonner"
 
 const loginSchema = z.object({
@@ -45,7 +45,7 @@ export function LoginForm({
 
 
   const onSubmit = async (data: LoginFormValues) => {
-    // 👈 2. Return the toast promise so react-hook-form can handle the submission state lifecycle
+    
     return toast.promise(
       async () => {
         const result = await signIn("credentials", {
@@ -63,7 +63,13 @@ export function LoginForm({
 
           throw new Error("Invalid credentials.")
         }
-        window.location.href = "/"
+        const session = await getSession();
+        if(session?.user?.role === "admin"){
+          window.location.href = "/category"
+        }
+        else{
+          window.location.href = "/"
+        }
         return result
       },
       {
