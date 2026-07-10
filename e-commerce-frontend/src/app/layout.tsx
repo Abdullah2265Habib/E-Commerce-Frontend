@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Link from "next/link";
 import GuestNavbar from "@/components/layout/guest/Navbar" 
+import { Toaster } from "sonner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -32,7 +33,7 @@ export default function RootLayout({
         <main className="flex-1 flex flex-col w-full">
           {children}
         </main>
-
+        <Toaster richColors closeButton position="top-center" />
         <footer className="w-full border-t border-slate-200 bg-white py-6 text-center">
           <nav className="mb-2 flex justify-center gap-4 text-sm font-medium text-slate-500">
             <Link href="/login" className="hover:text-black-600 transition-colors">Login</Link>

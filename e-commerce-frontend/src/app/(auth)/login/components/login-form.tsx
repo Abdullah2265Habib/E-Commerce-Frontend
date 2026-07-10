@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { signIn } from "next-auth/react"
+import { toast } from "sonner"
 
 const loginSchema = z.object({
   email: z.string().min(1, "Email is required").email("Invalid email address"),
@@ -44,29 +45,39 @@ export function LoginForm({
 
 
   const onSubmit = async (data: LoginFormValues) => {
-    try {
-      const result = await signIn("credentials", {
-        email: data.email,
-        password: data.password,
-        redirect: false,
-      })
-
-      if (result?.error) {
-        setError("root", {
-          type: "server",
-          message: "Invalid email or password.",
+    // 👈 2. Return the toast promise so react-hook-form can handle the submission state lifecycle
+    return toast.promise(
+      async () => {
+        const result = await signIn("credentials", {
+          email: data.email,
+          password: data.password,
+          redirect: false,
         })
-        return
-      }
 
-      // Redirect to home on success
-      window.location.href = "/"
-    } catch {
-      setError("root", {
-        type: "server",
-        message: "Something went wrong. Please try again.",
-      })
-    }
+
+        if (result?.error) {
+          setError("root", {
+            type: "server",
+            message: "Invalid email or password.",
+          })
+
+          throw new Error("Invalid credentials.")
+        }
+        window.location.href = "/"
+        return result
+      },
+      {
+        loading: "Signing you in...",
+        success: "Welcome back!",
+        // 5. Clean up error text so the toast displays contextually
+        error: (err: any) => {
+          if (err.message === "Invalid credentials.") {
+            return "Invalid email or password."
+          }
+          return "Something went wrong. Please try again."
+        }
+      }
+    )
   }
 
   return (
