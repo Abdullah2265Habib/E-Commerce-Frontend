@@ -26,20 +26,21 @@ export const authOptions: NextAuthOptions = {
               }),
             }
           )
-          //http://localhost:3001/api/auth/session
-          //http://localhost:3001/api/auth/providers
-          const user = await response.json()
 
-          if (!response.ok || !user) {
+          const data = await response.json()
+
+          if (!response.ok || !data?.user) {
             return null
           }
 
-          // Return the user object — NextAuth will store it in the session/token
+          // Backend returns { access_token, refresh_token, user: { id, name, email, role } }
           return {
-            id: user.id,
-            name: user.name,
-            email: user.email,
-            role: user.role,
+            id: data.user.id,
+            name: data.user.name,
+            email: data.user.email,
+            role: data.user.role,
+            accessToken: data.access_token,
+            refreshToken: data.refresh_token,
           }
         } catch {
           return null
@@ -56,20 +57,22 @@ export const authOptions: NextAuthOptions = {
     // 1. When user logs in, save their data into the JWT token
     async jwt({ token, user }) {
       if (user) {
-        token._id = user.id
+        token.id = user.id
         token.name = user.name
         token.email = user.email
         token.role = user.role
+        token.accessToken = (user as any).accessToken
+        token.refreshToken = (user as any).refreshToken
       }
       return token
     },
     // 2. When session is accessed, copy token data into session.user
     async session({ session, token }) {
-      if (token && session.user) {
+      if (token) {
         session.user = {
           ...session.user,
-          id: token._id as string,
-          name: token.name,
+          id: token.id as string,
+          name: token.name as string,
           email: token.email as string,
           role: token.role as string,
         }
