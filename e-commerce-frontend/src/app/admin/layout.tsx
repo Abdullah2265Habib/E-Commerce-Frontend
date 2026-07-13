@@ -7,7 +7,6 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  await requireAdmin();
 
   return (
     <div className="flex min-h-screen">

@@ -12,7 +12,6 @@ import {
 import { requireAdmin } from "@/lib/require-admin";
 
 export default async function CategoriesPage() {
-  await requireAdmin();
   let categories = [];
   try {
     const res = await fetch(
