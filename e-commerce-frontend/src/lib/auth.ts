@@ -53,18 +53,61 @@ export const authOptions: NextAuthOptions = {
   },
 
   callbacks: {
-    // 1. When user logs in, save their data into the JWT token
+    // 1. When user logs in, save their data into the JWT token.
+    //    On subsequent calls, attempt to refresh an expired access token.
     async jwt({ token, user }) {
-      if (user) {
-        token.id = user.id;
-        token.name = user.name;
-        token.email = user.email;
-        token.role = user.role;
-        token.accessToken = (user as any).accessToken;
-        token.refreshToken = (user as any).refreshToken;
-      }
-      return token;
-    },
+  if (user) {
+    token.id = user.id;
+    token.name = user.name;
+    token.email = user.email;
+    token.role = user.role;
+    token.accessToken = (user as any).accessToken;
+    token.refreshToken = (user as any).refreshToken;
+  }
+
+  return token;
+},
+    // async jwt({ token, user }) {
+    //   if (user) {
+    //     token.id = user.id;
+    //     token.name = user.name;
+    //     token.email = user.email;
+    //     token.role = user.role;
+    //     token.accessToken = (user as any).accessToken;
+    //     token.refreshToken = (user as any).refreshToken;
+    //     return token;
+    //   }
+
+    //   // Try to refresh the access token if it has expired
+    //   if (token.refreshToken) {
+    //     try {
+    //       const res = await fetch(
+    //         `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/auth/refresh`,
+    //         {
+    //           method: "POST",
+    //           headers: { "Content-Type": "application/json" },
+    //           body: JSON.stringify({ refresh_token: token.refreshToken }),
+    //         },
+    //       );
+
+    //       if (res.ok) {
+    //         const refreshed = await res.json();
+    //         token.accessToken = refreshed.access_token;
+    //         if (refreshed.refresh_token) {
+    //           token.refreshToken = refreshed.refresh_token;
+    //         }
+    //       } else {
+    //         token.accessToken = null;
+    //         token.refreshToken = null;
+    //       }
+    //     } catch {
+    //       token.accessToken = null;
+    //       token.refreshToken = null;
+    //     }
+    //   }
+
+    //   return token;
+    // },
     // 2. When session is accessed, copy token data into session.user
     async session({ session, token }) {
       if (token) {
@@ -75,6 +118,8 @@ export const authOptions: NextAuthOptions = {
           email: token.email as string,
           role: token.role as string,
         };
+        // Expose the backend access token so client components can use it
+        (session as any).accessToken = token.accessToken;
       }
       return session;
     },

@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Link from "next/link";
-import GuestNavbar from "@/components/layout/guest/Navbar"
+import GuestNavbar from "@/components/layout/guest/Navbar";
+import SessionProvider from "@/components/providers/SessionProvider";
 import { Toaster } from "sonner";
 
 const geistSans = Geist({
@@ -29,19 +30,21 @@ export default function RootLayout({
     <html lang="en">
 
       <body className="flex flex-col min-h-screen bg-slate-50 text-slate-900 antialiased">
-        <GuestNavbar />
-        <main className="flex-1 flex flex-col w-full">
-          {children}
-        </main>
-        <Toaster richColors closeButton position="top-center" />
-        <footer className="w-full border-t border-slate-200 bg-white py-6 text-center">
-          <nav className="mb-2 flex justify-center gap-4 text-sm font-medium text-slate-500">
-            <Link href="/login" className="hover:text-black-600 transition-colors">Login</Link>
-            <span className="text-slate-300">|</span>
-            <Link href="/signup" className="hover:text-black-600 transition-colors">Sign Up</Link>
-          </nav>
-          <p className="text-xs text-slate-400">© 2026 My App. All rights reserved.</p>
-        </footer>
+        <SessionProvider>
+          <GuestNavbar />
+          <main className="flex-1 flex flex-col w-full">
+            {children}
+          </main>
+          <Toaster richColors closeButton position="top-center" />
+          <footer className="w-full border-t border-slate-200 bg-white py-6 text-center">
+            <nav className="mb-2 flex justify-center gap-4 text-sm font-medium text-slate-500">
+              <Link href="/login" className="hover:text-black-600 transition-colors">Login</Link>
+              <span className="text-slate-300">|</span>
+              <Link href="/signup" className="hover:text-black-600 transition-colors">Sign Up</Link>
+            </nav>
+            <p className="text-xs text-slate-400">© 2026 My App. All rights reserved.</p>
+          </footer>
+        </SessionProvider>
       </body>
     </html>
   );

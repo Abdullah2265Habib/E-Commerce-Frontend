@@ -1,15 +1,15 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { useEffect } from "react"
-import { useRouter, useParams } from "next/navigation"
-import { useForm } from "react-hook-form"
-import { toast } from "sonner"
-import * as z from "zod"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { ArrowLeft } from "lucide-react"
+import * as React from "react";
+import { useEffect } from "react";
+import { useRouter, useParams } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import * as z from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { ArrowLeft } from "lucide-react";
 
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -17,65 +17,65 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
+} from "@/components/ui/card";
 import {
   Field,
   FieldGroup,
   FieldLabel,
   FieldError,
-} from "@/components/ui/field"
-import { Input } from "@/components/ui/input"
+} from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
 
 const formSchema = z.object({
   name: z
     .string()
     .min(2, "Category name must be at least 2 characters.")
     .max(50, "Category name must be at most 50 characters."),
-})
+});
 
-type CategoryFormData = z.infer<typeof formSchema>
+type CategoryFormData = z.infer<typeof formSchema>;
 
 export default function EditCategoryPage() {
-  const router = useRouter()
-  const params = useParams()
-  const id = params.id as string
+  const router = useRouter();
+  const params = useParams();
+  const id = params.id as string;
 
   const form = useForm<CategoryFormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
     },
-  })
+  });
 
-  const { setValue } = form
+  const { setValue } = form;
 
   useEffect(() => {
     const getCategory = async () => {
       try {
         const res = await fetch(
-          `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/categories/${id}`
-        )
+          `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/categories/${id}`,
+        );
 
-        const category = await res.json()
+        const category = await res.json();
 
         if (res.ok) {
-          setValue("name", category.name)
+          setValue("name", category.name);
         } else {
           toast.error("Failed to load category", {
             description: category.message || "An error occurred",
-          })
+          });
         }
       } catch {
         toast.error("Error", {
           description: "Unable to connect to the server to fetch category.",
-        })
+        });
       }
-    }
+    };
 
     if (id) {
-      getCategory()
+      getCategory();
     }
-  }, [id, setValue])
+  }, [id, setValue]);
 
   const onSubmit = async (data: CategoryFormData) => {
     try {
@@ -87,28 +87,28 @@ export default function EditCategoryPage() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify(data),
-        }
-      )
+        },
+      );
 
-      const result = await res.json()
+      const result = await res.json();
 
       if (res.ok) {
         toast.success("Success", {
           description: result.message || "Category updated successfully.",
-        })
-        router.push("/category")
-        router.refresh()
+        });
+        router.push("/category");
+        router.refresh();
       } else {
         toast.error("Failed to update category", {
           description: result.message || "An error occurred",
-        })
+        });
       }
     } catch {
       toast.error("Error", {
         description: "Unable to connect to the server.",
-      })
+      });
     }
-  }
+  };
 
   return (
     <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50/20 to-indigo-50/30 px-4 py-16">
@@ -117,7 +117,7 @@ export default function EditCategoryPage() {
           <Button
             type="button"
             variant="ghost"
-            onClick={() => router.push("/category")}
+            onClick={() => router.push("/admin/category")}
             className="h-9 px-3 text-slate-500 hover:text-slate-800 hover:bg-slate-50 rounded-xl transition-all duration-200 gap-1.5"
           >
             <ArrowLeft className="w-4 h-4" />
@@ -142,7 +142,9 @@ export default function EditCategoryPage() {
               <div className="text-xs font-mono text-slate-400 bg-slate-50 border border-slate-100 rounded-lg p-2.5 mb-2 select-all">
                 ID: {id}
               </div>
-              <Field data-invalid={form.formState.errors.name ? "true" : undefined}>
+              <Field
+                data-invalid={form.formState.errors.name ? "true" : undefined}
+              >
                 <FieldLabel className="text-sm font-semibold tracking-wide text-slate-700 mb-1.5">
                   Category Name
                 </FieldLabel>
@@ -164,7 +166,7 @@ export default function EditCategoryPage() {
           <Button
             type="button"
             variant="outline"
-            onClick={() => router.push("/category")}
+            onClick={() => router.push("/admin/category")}
             className="h-12 flex-1 border border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-semibold rounded-xl transition-all duration-200"
           >
             Cancel
@@ -179,5 +181,5 @@ export default function EditCategoryPage() {
         </CardFooter>
       </Card>
     </div>
-  )
+  );
 }

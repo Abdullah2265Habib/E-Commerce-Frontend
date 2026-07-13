@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod";
@@ -34,6 +35,7 @@ const formSchema = z.object({
 
 export default function CreateCategory() {
   const router = useRouter();
+  const { data: session } = useSession();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -43,7 +45,15 @@ export default function CreateCategory() {
 
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
     try {
-      const token = localStorage.getItem("access_token");
+      const token = (session as any)?.accessToken;
+
+      if (!token) {
+        toast.error("Session expired", {
+          description: "Please sign out and sign back in.",
+        });
+        return;
+      }
+
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/categories`,
         {
@@ -61,7 +71,7 @@ export default function CreateCategory() {
           description: "Category created successfully",
         });
         form.reset();
-        router.push("/category");
+        router.push("/admin/category");
         router.refresh();
       } else {
         const err = await res.json();
@@ -84,7 +94,7 @@ export default function CreateCategory() {
           <Button
             type="button"
             variant="ghost"
-            onClick={() => router.push("/category")}
+            onClick={() => router.push("/admin/category")}
             className="h-9 px-3 text-slate-500 hover:text-slate-800 hover:bg-slate-50 rounded-xl transition-all duration-200 gap-1.5"
           >
             <ArrowLeft className="w-4 h-4" />

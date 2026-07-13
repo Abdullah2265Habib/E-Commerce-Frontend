@@ -17,7 +17,7 @@ export default function DeleteCategoryPage() {
       )
 
       if (!confirmDelete) {
-        router.push("/category")
+        router.push("/admin/category")
         return
       }
 
@@ -44,7 +44,7 @@ export default function DeleteCategoryPage() {
         toast.error("Error", {
           description: "Unable to connect to the server.",
         })
-        router.push("/category")
+        router.push("/admin/category")
       }
     }
 
