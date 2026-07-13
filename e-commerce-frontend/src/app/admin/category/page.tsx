@@ -76,14 +76,14 @@ export default async function CategoriesPage() {
                   </TableCell>
                   <TableCell className="text-right py-4 px-6">
                     <div className="flex justify-end items-center gap-2">
-                      <Link href={`./admin/category/edit/${category._id}`}>
+                      <Link href={`./category/edit/${category._id}`}>
                         <Button variant="outline" size="sm">
                           <Edit2 className="mr-2 h-4 w-4" />
                           Edit
                         </Button>
                       </Link>
 
-                      <Link href={`./admin/category/delete/${category._id}`}>
+                      <Link href={`./category/delete/${category._id}`}>
                         <Button variant="destructive" size="sm">
                           <Trash2 className="mr-2 h-4 w-4" />
                           Delete

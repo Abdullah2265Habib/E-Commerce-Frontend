@@ -3,6 +3,7 @@
 import * as React from "react";
 import { useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod";
@@ -39,6 +40,7 @@ export default function EditCategoryPage() {
   const router = useRouter();
   const params = useParams();
   const id = params.id as string;
+  const { data: session } = useSession();
 
   const form = useForm<CategoryFormData>({
     resolver: zodResolver(formSchema),
@@ -79,12 +81,22 @@ export default function EditCategoryPage() {
 
   const onSubmit = async (data: CategoryFormData) => {
     try {
+      const token = (session as any)?.accessToken;
+
+      if (!token) {
+        toast.error("Session expired", {
+          description: "Please sign out and sign back in.",
+        });
+        return;
+      }
+
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/categories/${id}`,
         {
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify(data),
         },
@@ -96,7 +108,7 @@ export default function EditCategoryPage() {
         toast.success("Success", {
           description: result.message || "Category updated successfully.",
         });
-        router.push("/category");
+        router.push("/admin/category");
         router.refresh();
       } else {
         toast.error("Failed to update category", {
