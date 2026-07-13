@@ -2,11 +2,13 @@
 
 import { useEffect } from "react"
 import { useRouter, useParams } from "next/navigation"
+import { useSession } from "next-auth/react"
 import { toast } from "sonner"
 
 export default function DeleteCategoryPage() {
   const router = useRouter()
   const params = useParams()
+  const { data: session } = useSession()
 
   const id = params.id as string
 
@@ -21,11 +23,24 @@ export default function DeleteCategoryPage() {
         return
       }
 
+      const token = (session as any)?.accessToken
+
+      if (!token) {
+        toast.error("Session expired", {
+          description: "Please sign out and sign back in.",
+        })
+        router.push("/admin/category")
+        return
+      }
+
       try {
         const res = await fetch(
           `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/categories/${id}`,
           {
             method: "DELETE",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
           }
         )
 
@@ -51,7 +66,7 @@ export default function DeleteCategoryPage() {
     if (id) {
       deleteCategory()
     }
-  }, [id, router])
+  }, [id, router, session])
 
   return (
     <div className="flex-1 flex items-center justify-center p-6 text-slate-500 font-medium">
