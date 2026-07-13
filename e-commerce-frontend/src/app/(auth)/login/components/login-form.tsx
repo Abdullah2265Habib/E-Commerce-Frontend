@@ -18,7 +18,7 @@ import { getSession, signIn } from "next-auth/react"
 import { toast } from "sonner"
 
 const loginSchema = z.object({
-  email: z.string().min(1, "Email is required").email("Invalid email address"),
+  email: z.email("Invalid email address").min(1, "Email is required"),
   password: z.string().min(1, "Password is required"),
 })
           //http://localhost:3001/api/auth/session
@@ -65,7 +65,7 @@ export function LoginForm({
         }
         const session = await getSession();
         if(session?.user?.role === "admin"){
-          window.location.href = "/category"
+          window.location.href = "/admin"
         }
         else{
           window.location.href = "/"
@@ -186,7 +186,7 @@ export function LoginForm({
               </Field>
 
               <FieldDescription className="text-center">
-                Don&apos;t have an account? <a href="#">Sign up</a>
+                Don&apos;t have an account? <a href="../signup">Sign up</a>
               </FieldDescription>
             </FieldGroup>
           </form>

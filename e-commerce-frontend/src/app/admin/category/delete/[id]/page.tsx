@@ -17,7 +17,7 @@ export default function DeleteCategoryPage() {
       )
 
       if (!confirmDelete) {
-        router.push("/category-new")
+        router.push("/category")
         return
       }
 
@@ -31,20 +31,20 @@ export default function DeleteCategoryPage() {
 
         if (res.ok) {
           toast.success("Category deleted successfully")
-          router.push("/category-new")
+          router.push("/category")
           router.refresh()
         } else {
           const error = await res.text()
           toast.error("Failed to delete category", {
             description: error,
           })
-          router.push("/category-new")
+          router.push("/category")
         }
       } catch {
         toast.error("Error", {
           description: "Unable to connect to the server.",
         })
-        router.push("/category-new")
+        router.push("/category")
       }
     }
 

@@ -3,15 +3,15 @@ import { redirect } from "next/navigation";
 import { authOptions } from "./auth";
 
 export async function requireAdmin() {
-    const session = await getServerSession(authOptions);
+  const session = await getServerSession(authOptions);
 
-    if (!session) {
-        redirect("/login");
-    }
+  if (!session) {
+    redirect("/login");
+  }
 
-    if (session.user.role !== "admin") {
-        redirect("/"); 
-    }
+  if (session.user.role !== "admin") {
+    redirect("/");
+  }
 
-    return session;
+  return session;
 }

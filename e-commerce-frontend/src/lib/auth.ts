@@ -1,5 +1,5 @@
-import { NextAuthOptions } from "next-auth"
-import CredentialsProvider from "next-auth/providers/credentials"
+import { NextAuthOptions } from "next-auth";
+import CredentialsProvider from "next-auth/providers/credentials";
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -11,7 +11,7 @@ export const authOptions: NextAuthOptions = {
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
-          return null
+          return null;
         }
 
         try {
@@ -24,16 +24,15 @@ export const authOptions: NextAuthOptions = {
                 email: credentials.email,
                 password: credentials.password,
               }),
-            }
-          )
+            },
+          );
 
-          const data = await response.json()
+          const data = await response.json();
 
           if (!response.ok || !data?.user) {
-            return null
+            return null;
           }
 
-          // Backend returns { access_token, refresh_token, user: { id, name, email, role } }
           return {
             id: data.user.id,
             name: data.user.name,
@@ -41,9 +40,9 @@ export const authOptions: NextAuthOptions = {
             role: data.user.role,
             accessToken: data.access_token,
             refreshToken: data.refresh_token,
-          }
+          };
         } catch {
-          return null
+          return null;
         }
       },
     }),
@@ -57,14 +56,14 @@ export const authOptions: NextAuthOptions = {
     // 1. When user logs in, save their data into the JWT token
     async jwt({ token, user }) {
       if (user) {
-        token.id = user.id
-        token.name = user.name
-        token.email = user.email
-        token.role = user.role
-        token.accessToken = (user as any).accessToken
-        token.refreshToken = (user as any).refreshToken
+        token.id = user.id;
+        token.name = user.name;
+        token.email = user.email;
+        token.role = user.role;
+        token.accessToken = (user as any).accessToken;
+        token.refreshToken = (user as any).refreshToken;
       }
-      return token
+      return token;
     },
     // 2. When session is accessed, copy token data into session.user
     async session({ session, token }) {
@@ -75,9 +74,9 @@ export const authOptions: NextAuthOptions = {
           name: token.name as string,
           email: token.email as string,
           role: token.role as string,
-        }
+        };
       }
-      return session
+      return session;
     },
   },
 
@@ -86,4 +85,4 @@ export const authOptions: NextAuthOptions = {
   },
 
   secret: process.env.NEXTAUTH_SECRET,
-}
+};

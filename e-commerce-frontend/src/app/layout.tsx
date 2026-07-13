@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Link from "next/link";
-import GuestNavbar from "@/components/layout/guest/Navbar" 
+import GuestNavbar from "@/components/layout/guest/Navbar"
 import { Toaster } from "sonner";
 
 const geistSans = Geist({
@@ -29,7 +29,7 @@ export default function RootLayout({
     <html lang="en">
 
       <body className="flex flex-col min-h-screen bg-slate-50 text-slate-900 antialiased">
-        <GuestNavbar/>
+        <GuestNavbar />
         <main className="flex-1 flex flex-col w-full">
           {children}
         </main>

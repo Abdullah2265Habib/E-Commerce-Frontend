@@ -96,7 +96,7 @@ export default function EditCategoryPage() {
         toast.success("Success", {
           description: result.message || "Category updated successfully.",
         })
-        router.push("/category-new")
+        router.push("/category")
         router.refresh()
       } else {
         toast.error("Failed to update category", {
@@ -117,7 +117,7 @@ export default function EditCategoryPage() {
           <Button
             type="button"
             variant="ghost"
-            onClick={() => router.push("/category-new")}
+            onClick={() => router.push("/category")}
             className="h-9 px-3 text-slate-500 hover:text-slate-800 hover:bg-slate-50 rounded-xl transition-all duration-200 gap-1.5"
           >
             <ArrowLeft className="w-4 h-4" />
@@ -164,7 +164,7 @@ export default function EditCategoryPage() {
           <Button
             type="button"
             variant="outline"
-            onClick={() => router.push("/category-new")}
+            onClick={() => router.push("/category")}
             className="h-12 flex-1 border border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-semibold rounded-xl transition-all duration-200"
           >
             Cancel
