@@ -25,7 +25,7 @@ import {
   FieldError,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-
+import { useEffect } from "react";
 const formSchema = z.object({
   name: z
     .string()
@@ -34,23 +34,34 @@ const formSchema = z.object({
 });
 
 export default function CreateCategory() {
+
+  
   const router = useRouter();
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
     },
   });
+  useEffect(() => {
+  if (status === "loading") return;
 
+  const token = (session as any)?.accessToken;
+
+  if (!token) {
+    router.push("/login");
+  }
+  }, [status, session, router]);
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
     try {
       const token = (session as any)?.accessToken;
 
       if (!token) {
         toast.error("Session expired", {
-          description: "Please sign out and sign back in.",
+          description: "Pleas sign back in Again.",
         });
+        router.push("/login")
         return;
       }
 

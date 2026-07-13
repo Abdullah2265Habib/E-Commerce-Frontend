@@ -40,7 +40,7 @@ export default function EditCategoryPage() {
   const router = useRouter();
   const params = useParams();
   const id = params.id as string;
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
 
   const form = useForm<CategoryFormData>({
     resolver: zodResolver(formSchema),
@@ -52,6 +52,15 @@ export default function EditCategoryPage() {
   const { setValue } = form;
 
   useEffect(() => {
+    if(status ===  "loading")
+      return;
+  
+    const token = (session as any)?.accessToken;
+
+    if (!token) {
+      router.push("/login");
+      return;
+    }
     const getCategory = async () => {
       try {
         const res = await fetch(
@@ -85,8 +94,9 @@ export default function EditCategoryPage() {
 
       if (!token) {
         toast.error("Session expired", {
-          description: "Please sign out and sign back in.",
+          description: "Pleas sign back in Again.",
         });
+        router.push("/login");
         return;
       }
 
