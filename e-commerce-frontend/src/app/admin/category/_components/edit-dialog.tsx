@@ -56,7 +56,7 @@ export default function EditDialog({
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/categories/${category._id}`,
         {
-          method: "PUT",
+          method: "PATCH",
           headers: {
             "Content-Type": "application/json",
             ...(token ? { Authorization: `Bearer ${token}` } : {}),
