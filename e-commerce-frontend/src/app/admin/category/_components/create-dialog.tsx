@@ -1,0 +1,119 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+
+interface CreateDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+export default function CreateDialog({
+  open,
+  onOpenChange,
+}: CreateDialogProps) {
+  const router = useRouter();
+
+  const [name, setName] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleCreate = async () => {
+    if (!name.trim()) return;
+
+    try {
+      setLoading(true);
+
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/categories`,
+        {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            name: name.trim(),
+          }),
+        },
+      );
+
+      const data = await res.json();
+
+      console.log("API response:", res.status, data);
+
+      if (!res.ok) {
+        throw new Error(data.message || "Failed to create category");
+      }
+
+      setName("");
+      onOpenChange(false);
+      router.refresh();
+    } catch (error) {
+      console.error(error);
+      alert("Failed to create category.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Dialog
+      open={open}
+      onOpenChange={(value) => {
+        if (!loading) {
+          onOpenChange(value);
+
+          if (!value) {
+            setName("");
+          }
+        }
+      }}
+    >
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Create Category</DialogTitle>
+          <DialogDescription>
+            Add a new category to organize your products.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-2">
+          <Label htmlFor="category-name">Category Name</Label>
+
+          <Input
+            id="category-name"
+            placeholder="Enter category name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
+        </div>
+
+        <DialogFooter>
+          <Button
+            variant="outline"
+            disabled={loading}
+            onClick={() => onOpenChange(false)}
+          >
+            Cancel
+          </Button>
+
+          <Button onClick={handleCreate} disabled={loading || !name.trim()}>
+            {loading ? "Creating..." : "Create"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}

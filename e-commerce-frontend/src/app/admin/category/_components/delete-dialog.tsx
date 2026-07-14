@@ -1,0 +1,106 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+
+import { Button } from "@/components/ui/button";
+
+interface Category {
+  _id: string;
+  name: string;
+}
+
+interface DeleteDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  category: Category | null;
+}
+
+export default function DeleteDialog({
+  open,
+  onOpenChange,
+  category,
+}: DeleteDialogProps) {
+  const router = useRouter();
+
+  const [loading, setLoading] = useState(false);
+
+  const handleDelete = async () => {
+    if (!category) return;
+
+    try {
+      setLoading(true);
+
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/categories/${category._id}`,
+        {
+          method: "DELETE",
+        }
+      );
+
+      if (!res.ok) {
+        throw new Error("Failed to delete category");
+      }
+
+      onOpenChange(false);
+      router.refresh();
+    } catch (error) {
+      console.error(error);
+      alert("Failed to delete category.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Dialog
+      open={open}
+      onOpenChange={(value) => {
+        if (!loading) {
+          onOpenChange(value);
+        }
+      }}
+    >
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Delete Category</DialogTitle>
+
+          <DialogDescription>
+            Are you sure you want to delete{" "}
+            <span className="font-semibold text-foreground">
+              {category?.name}
+            </span>
+            ? This action cannot be undone.
+          </DialogDescription>
+        </DialogHeader>
+
+        <DialogFooter>
+          <Button
+            variant="outline"
+            disabled={loading}
+            onClick={() => onOpenChange(false)}
+          >
+            Cancel
+          </Button>
+
+          <Button
+            variant="destructive"
+            disabled={loading}
+            onClick={handleDelete}
+          >
+            {loading ? "Deleting..." : "Delete"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}

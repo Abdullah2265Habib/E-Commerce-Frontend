@@ -1,0 +1,130 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+
+interface Category {
+  _id: string;
+  name: string;
+}
+
+interface EditDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  category: Category | null;
+}
+
+export default function EditDialog({
+  open,
+  onOpenChange,
+  category,
+}: EditDialogProps) {
+  const router = useRouter();
+
+  const [name, setName] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (category) {
+      setName(category.name);
+    }
+  }, [category]);
+
+  const handleUpdate = async () => {
+    if (!category || !name.trim()) return;
+
+    try {
+      setLoading(true);
+
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/categories/${category._id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            name: name.trim(),
+          }),
+        }
+      );
+
+      if (!res.ok) {
+        throw new Error("Failed to update category");
+      }
+
+      onOpenChange(false);
+      router.refresh();
+    } catch (error) {
+      console.error(error);
+      alert("Failed to update category.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Dialog
+      open={open}
+      onOpenChange={(value) => {
+        if (!loading) {
+          onOpenChange(value);
+
+          if (!value) {
+            setName("");
+          }
+        }
+      }}
+    >
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Edit Category</DialogTitle>
+          <DialogDescription>
+            Update the category name.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-2">
+          <Label htmlFor="category-name">Category Name</Label>
+
+          <Input
+            id="category-name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Enter category name"
+          />
+        </div>
+
+        <DialogFooter>
+          <Button
+            variant="outline"
+            disabled={loading}
+            onClick={() => onOpenChange(false)}
+          >
+            Cancel
+          </Button>
+
+          <Button
+            onClick={handleUpdate}
+            disabled={loading || !name.trim()}
+          >
+            {loading ? "Saving..." : "Save Changes"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
