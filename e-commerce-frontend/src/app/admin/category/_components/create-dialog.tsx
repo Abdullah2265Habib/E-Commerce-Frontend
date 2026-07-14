@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-
+import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
@@ -55,18 +55,21 @@ export default function CreateDialog({
 
       const data = await res.json();
 
-      console.log("API response:", res.status, data);
-
       if (!res.ok) {
-        throw new Error(data.message || "Failed to create category");
+        toast.error(data.message || "Failed to create category");
+        return;
       }
+
+      toast.success("Category created successfully");
 
       setName("");
       onOpenChange(false);
+
       router.refresh();
     } catch (error) {
       console.error(error);
-      alert("Failed to create category.");
+
+      toast.error("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }

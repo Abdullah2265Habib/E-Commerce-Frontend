@@ -50,8 +50,8 @@ export const authOptions: NextAuthOptions = {
 
   session: {
     strategy: "jwt",
+    maxAge: 900,
   },
-
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
@@ -61,19 +61,17 @@ export const authOptions: NextAuthOptions = {
         token.role = user.role;
 
         token.accessToken = (user as any).accessToken;
-        const decoded: any = jwtDecode(
-          (user as any).accessToken
-        );
-        token.accessTokenExpires = decoded.exp * 1000
+        const decoded: any = jwtDecode((user as any).accessToken);
+        token.accessTokenExpires = decoded.exp * 1000;
 
         return token;
       }
 
-      if (token.accessTokenExpires && Date.now() > token.accessTokenExpires) {
-        token.accessToken = null;
-        token.error = "AccessTokenExpired";
-        return token;
-      }
+      // if (token.accessTokenExpires && Date.now() > token.accessTokenExpires) {
+      //   token.accessToken = null;
+      //   token.error = "AccessTokenExpired";
+      //   return token;
+      // }
 
       return token;
     },

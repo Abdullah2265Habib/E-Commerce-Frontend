@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-
+import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
@@ -64,18 +64,24 @@ export default function EditDialog({
           body: JSON.stringify({
             name: name.trim(),
           }),
-        }
+        },
       );
 
+      const data = await res.json();
+
       if (!res.ok) {
-        throw new Error("Failed to update category");
+        toast.error(data.message || "Failed to update category");
+        return;
       }
+
+      toast.success("Category updated successfully");
 
       onOpenChange(false);
       router.refresh();
     } catch (error) {
       console.error(error);
-      alert("Failed to update category.");
+
+      toast.error("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -97,9 +103,7 @@ export default function EditDialog({
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Edit Category</DialogTitle>
-          <DialogDescription>
-            Update the category name.
-          </DialogDescription>
+          <DialogDescription>Update the category name.</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-2">
@@ -122,10 +126,7 @@ export default function EditDialog({
             Cancel
           </Button>
 
-          <Button
-            onClick={handleUpdate}
-            disabled={loading || !name.trim()}
-          >
+          <Button onClick={handleUpdate} disabled={loading || !name.trim()}>
             {loading ? "Saving..." : "Save Changes"}
           </Button>
         </DialogFooter>

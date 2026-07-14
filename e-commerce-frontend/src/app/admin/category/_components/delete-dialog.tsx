@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-
+import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
@@ -51,18 +51,24 @@ export default function DeleteDialog({
           headers: {
             ...(token ? { Authorization: `Bearer ${token}` } : {}),
           },
-        }
+        },
       );
 
+      const data = await res.json();
+
       if (!res.ok) {
-        throw new Error("Failed to delete category");
+        toast.error(data.message || "Failed to delete category");
+        return;
       }
+
+      toast.success("Category deleted successfully");
 
       onOpenChange(false);
       router.refresh();
     } catch (error) {
       console.error(error);
-      alert("Failed to delete category.");
+
+      toast.error("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }

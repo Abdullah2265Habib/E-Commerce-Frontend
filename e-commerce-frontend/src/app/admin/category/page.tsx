@@ -5,17 +5,23 @@ export default async function CategoriesPage() {
   await requireAdmin();
 
   let categories = [];
+  let currentPage = 1;
+  let totalPage = 0;
 
   try {
     const res = await fetch(
-      `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/categories`,
+      `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/categories?page=1&limit=10`,
       {
         cache: "no-store",
       }
     );
 
     if (res.ok) {
-      categories = await res.json();
+      const result = await res.json();
+
+      categories = result.data;
+      currentPage = result.page;
+      totalPage = result.totalPages;
     }
   } catch (error) {
     console.error("Failed to fetch categories:", error);
@@ -23,7 +29,11 @@ export default async function CategoriesPage() {
 
   return (
     <div className="container max-w-5xl mx-auto py-8">
-      <CategoriesTable categories={categories} />
+      <CategoriesTable
+        categories={categories}
+        currentPage={currentPage}
+        totalPage={totalPage}
+      />
     </div>
   );
 }

@@ -23,11 +23,15 @@ interface Category {
 
 interface CategoriesTableProps {
   categories: Category[];
+  currentPage: number;
+  totalPage: number;
 }
 
 export default function CategoriesTable({
-  categories,
+  categories, currentPage, totalPage,
 }: CategoriesTableProps) {
+  const [category, setCategory] = useState<Category[]>(categories);
+  const [ page, setPage ] = useState(currentPage);
   const [createOpen, setCreateOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] =
     useState<Category | null>(null);
@@ -44,7 +48,24 @@ export default function CategoriesTable({
     setSelectedCategory(category);
     setDeleteOpen(true);
   };
+const fetchCategories = async (pageNumber: number) => {
+  try {
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/categories?page=${pageNumber}&limit=10`
+    );
 
+    if (!res.ok) {
+      throw new Error("Failed to fetch categories");
+    }
+
+    const result = await res.json();
+
+    setCategory(result.data);
+    setPage(result.page);
+  } catch (error) {
+    console.error("Failed to fetch categories:", error);
+  }
+};
   return (
     <>
       <div className="space-y-6">
@@ -56,7 +77,7 @@ export default function CategoriesTable({
               </h1>
 
               <span className="rounded-md border bg-muted px-2 py-1 text-xs text-muted-foreground">
-                {categories.length} Categories
+                {category.length} Categories
               </span>
             </div>
 
@@ -86,8 +107,8 @@ export default function CategoriesTable({
             </TableHeader>
 
             <TableBody>
-              {categories.length > 0 ? (
-                categories.map((category) => (
+              {category.length > 0 ? (
+                category.map((category) => (
                   <TableRow key={category._id}>
                     <TableCell className="font-medium py-4">
                       <div className="flex items-center gap-3">
@@ -143,6 +164,27 @@ export default function CategoriesTable({
               )}
             </TableBody>
           </Table>
+          <div className="flex items-center justify-between border-t px-6 py-4">
+  <Button
+    variant="outline"
+    disabled={page === 1}
+    onClick={() => fetchCategories(page - 1)}
+  >
+    Previous
+  </Button>
+
+  <span className="text-sm text-muted-foreground">
+    Page {page} of {totalPage}
+  </span>
+
+  <Button
+    variant="outline"
+    disabled={page === totalPage}
+    onClick={() => fetchCategories(page + 1)}
+  >
+    Next
+  </Button>
+</div>
         </div>
       </div>
 
