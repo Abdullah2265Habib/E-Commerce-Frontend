@@ -67,6 +67,9 @@ export function LoginForm({
         if(session?.user?.role === "admin"){
           window.location.href = "/admin"
         }
+        else if(session?.user?.role === "customer"){
+          window.location.href = "/dashboard"
+        }
         else{
           window.location.href = "/"
         }

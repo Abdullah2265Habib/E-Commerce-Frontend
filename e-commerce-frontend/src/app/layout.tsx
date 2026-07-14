@@ -5,6 +5,7 @@ import Link from "next/link";
 import GuestNavbar from "@/components/layout/customer/Navbar";
 import SessionProvider from "@/components/providers/SessionProvider";
 import { Toaster } from "sonner";
+import Sidebar from "@/components/layout/customer/Sidebar";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -31,7 +32,6 @@ export default function RootLayout({
 
       <body className="flex flex-col min-h-screen bg-slate-50 text-slate-900 antialiased">
         <SessionProvider>
-          <GuestNavbar />
           <main className="flex-1 flex flex-col w-full">
             {children}
           </main>
