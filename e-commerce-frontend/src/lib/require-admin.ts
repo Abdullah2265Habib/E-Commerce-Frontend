@@ -9,6 +9,10 @@ export async function requireAdmin() {
     redirect("/login");
   }
 
+  if ((session as any).error === "AccessTokenExpired") {
+    redirect("/login");
+  }
+
   if (session.user.role !== "admin") {
     redirect("/");
   }

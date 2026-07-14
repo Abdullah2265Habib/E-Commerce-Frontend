@@ -1,6 +1,6 @@
 import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-
+import { jwtDecode } from "jwt-decode";
 export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
@@ -61,7 +61,10 @@ export const authOptions: NextAuthOptions = {
         token.role = user.role;
 
         token.accessToken = (user as any).accessToken;
-        token.accessTokenExpires = Date.now() + 15 * 60 * 1000;
+        const decoded: any = jwtDecode(
+          (user as any).accessToken
+        );
+        token.accessTokenExpires = decoded.exp * 1000
 
         return token;
       }
@@ -126,6 +129,7 @@ export const authOptions: NextAuthOptions = {
         };
 
         (session as any).accessToken = token.accessToken;
+        (session as any).error = token.error;
       }
       return session;
     },
