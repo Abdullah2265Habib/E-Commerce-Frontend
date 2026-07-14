@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 
 import {
   Dialog,
@@ -33,6 +34,7 @@ export default function EditDialog({
   category,
 }: EditDialogProps) {
   const router = useRouter();
+  const { data: session } = useSession();
 
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
@@ -49,12 +51,15 @@ export default function EditDialog({
     try {
       setLoading(true);
 
+      const token = (session as any)?.accessToken;
+
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/categories/${category._id}`,
         {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
           },
           body: JSON.stringify({
             name: name.trim(),

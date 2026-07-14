@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 
 import {
   Dialog,
@@ -31,6 +32,7 @@ export default function DeleteDialog({
   category,
 }: DeleteDialogProps) {
   const router = useRouter();
+  const { data: session } = useSession();
 
   const [loading, setLoading] = useState(false);
 
@@ -40,10 +42,15 @@ export default function DeleteDialog({
     try {
       setLoading(true);
 
+      const token = (session as any)?.accessToken;
+
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/categories/${category._id}`,
         {
           method: "DELETE",
+          headers: {
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
         }
       );
 
