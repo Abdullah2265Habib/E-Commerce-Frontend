@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
@@ -21,6 +21,10 @@ interface CreateDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
+interface FormValues {
+  name: string;
+}
+
 export default function CreateDialog({
   open,
   onOpenChange,
@@ -28,15 +32,21 @@ export default function CreateDialog({
   const router = useRouter();
   const { data: session } = useSession();
 
-  const [name, setName] = useState("");
-  const [loading, setLoading] = useState(false);
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { isSubmitting },
+  } = useForm<FormValues>({
+    defaultValues: {
+      name: "",
+    },
+  });
 
-  const handleCreate = async () => {
-    if (!name.trim()) return;
+  const handleCreate = async (values: FormValues) => {
+    if (!values.name.trim()) return;
 
     try {
-      setLoading(true);
-
       const token = (session as any)?.accessToken;
 
       const res = await fetch(
@@ -48,7 +58,7 @@ export default function CreateDialog({
             ...(token ? { Authorization: `Bearer ${token}` } : {}),
           },
           body: JSON.stringify({
-            name: name.trim(),
+            name: values.name.trim(),
           }),
         },
       );
@@ -62,7 +72,7 @@ export default function CreateDialog({
 
       toast.success("Category created successfully");
 
-      setName("");
+      reset();
       onOpenChange(false);
 
       router.refresh();
@@ -70,8 +80,6 @@ export default function CreateDialog({
       console.error(error);
 
       toast.error("Something went wrong. Please try again.");
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -79,11 +87,11 @@ export default function CreateDialog({
     <Dialog
       open={open}
       onOpenChange={(value) => {
-        if (!loading) {
+        if (!isSubmitting) {
           onOpenChange(value);
 
           if (!value) {
-            setName("");
+            reset();
           }
         }
       }}
@@ -96,30 +104,32 @@ export default function CreateDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-2">
-          <Label htmlFor="category-name">Category Name</Label>
+        <form onSubmit={handleSubmit(handleCreate)}>
+          <div className="space-y-2">
+            <Label htmlFor="category-name">Category Name</Label>
 
-          <Input
-            id="category-name"
-            placeholder="Enter category name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-          />
-        </div>
+            <Input
+              id="category-name"
+              placeholder="Enter category name"
+              {...register("name")}
+            />
+          </div>
 
-        <DialogFooter>
-          <Button
-            variant="outline"
-            disabled={loading}
-            onClick={() => onOpenChange(false)}
-          >
-            Cancel
-          </Button>
+          <DialogFooter className="mt-4">
+            <Button
+              type="button"
+              variant="outline"
+              disabled={isSubmitting}
+              onClick={() => onOpenChange(false)}
+            >
+              Cancel
+            </Button>
 
-          <Button onClick={handleCreate} disabled={loading || !name.trim()}>
-            {loading ? "Creating..." : "Create"}
-          </Button>
-        </DialogFooter>
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? "Creating..." : "Create"}
+            </Button>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   );
