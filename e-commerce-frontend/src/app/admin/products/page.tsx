@@ -10,20 +10,20 @@ interface PageProps {
 
 export default async function ProductsPage({ searchParams }: PageProps) {
   const params = await searchParams;
-
   const page = Number(params.page ?? "1");
 
   const session = await getServerSession(authOptions);
   const token = (session as any)?.accessToken;
 
-  let products = [];
+  let products: any[] = [];
   let currentPage = page;
   let totalPage = 0;
 
   try {
     const res = await fetch(
-      `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/products`,
+      `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/products?page=${page}&limit=10`,
       {
+        cache: "no-store",
         headers: {
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
@@ -32,7 +32,6 @@ export default async function ProductsPage({ searchParams }: PageProps) {
 
     if (res.ok) {
       const result = await res.json();
-
       products = result.data;
       currentPage = result.page;
       totalPage = result.totalPages;
@@ -40,6 +39,7 @@ export default async function ProductsPage({ searchParams }: PageProps) {
   } catch (error) {
     console.error(error);
   }
+
   return (
     <div className="container max-w-5xl mx-auto py-8">
       <ProductsTable
@@ -50,4 +50,3 @@ export default async function ProductsPage({ searchParams }: PageProps) {
     </div>
   );
 }
-
