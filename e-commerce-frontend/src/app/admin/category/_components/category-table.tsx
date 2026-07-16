@@ -21,11 +21,21 @@ interface Category {
   name: string;
 }
 
-export default function CategoriesTable({ categories, currentPage, totalPage, }: { categories: Category[], currentPage: number, totalPage: number}) {
+export default function CategoriesTable({
+  categories,
+  currentPage,
+  totalPage,
+}: {
+  categories: Category[];
+  currentPage: number;
+  totalPage: number;
+}) {
   const router = useRouter();
   const [createOpen, setCreateOpen] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
-  
+  const [selectedCategory, setSelectedCategory] = useState<Category | null>(
+    null,
+  );
+
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
 
@@ -44,9 +54,7 @@ export default function CategoriesTable({ categories, currentPage, totalPage, }:
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b pb-6">
           <div>
             <div className="flex items-center gap-3">
-              <h1 className="text-3xl font-bold tracking-tight">
-                Categories
-              </h1>
+              <h1 className="text-3xl font-bold tracking-tight">Categories</h1>
 
               <span className="rounded-md border bg-muted px-2 py-1 text-xs text-muted-foreground">
                 {categories.length} Categories
@@ -137,33 +145,30 @@ export default function CategoriesTable({ categories, currentPage, totalPage, }:
             </TableBody>
           </Table>
           <div className="flex items-center justify-between border-t px-6 py-4">
-  <Button
-    variant="outline"
-    disabled={currentPage === 1}
-    onClick={() => router.push(`?page=${currentPage - 1}`)}
-  >
-    Previous
-  </Button>
+            <Button
+              variant="outline"
+              disabled={currentPage === 1}
+              onClick={() => router.push(`?page=${currentPage - 1}`)}
+            >
+              Previous
+            </Button>
 
-  <span className="text-sm text-muted-foreground">
-    Page {currentPage} of {totalPage}
-  </span>
+            <span className="text-sm text-muted-foreground">
+              Page {currentPage} of {totalPage}
+            </span>
 
-  <Button
-    variant="outline"
-    disabled={currentPage === totalPage}
-    onClick={() => router.push(`?page=${currentPage + 1}`)}
-  >
-    Next
-  </Button>
-</div>
+            <Button
+              variant="outline"
+              disabled={currentPage === totalPage}
+              onClick={() => router.push(`?page=${currentPage + 1}`)}
+            >
+              Next
+            </Button>
+          </div>
         </div>
       </div>
 
-      <CreateDialog
-        open={createOpen}
-        onOpenChange={setCreateOpen}
-      />
+      <CreateDialog open={createOpen} onOpenChange={setCreateOpen} />
 
       <EditDialog
         open={editOpen}
