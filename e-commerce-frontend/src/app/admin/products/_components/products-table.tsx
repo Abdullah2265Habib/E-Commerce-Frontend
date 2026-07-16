@@ -74,7 +74,7 @@ export default function ProductsTable({
         {/* Product List */}
         <div className="rounded-lg border bg-card text-card-foreground shadow-sm overflow-hidden">
           {products.length > 0 ? (
-            <Accordion type="single" collapsible className="w-full">
+            <Accordion openMultiple={false} className="w-full">
               {products.map((product, index) => (
                 <AccordionItem
                   key={product._id}
