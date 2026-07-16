@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
+import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -28,6 +29,10 @@ interface EditDialogProps {
   category: Category | null;
 }
 
+type FormValues = {
+  name: string;
+};
+
 export default function EditDialog({
   open,
   onOpenChange,
@@ -36,17 +41,31 @@ export default function EditDialog({
   const router = useRouter();
   const { data: session } = useSession();
 
-  const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    watch,
+    reset,
+    formState: { errors },
+  } = useForm<FormValues>({
+    defaultValues: {
+      name: "",
+    },
+  });
+
+  const name = watch("name");
 
   useEffect(() => {
     if (category) {
-      setName(category.name);
+      setValue("name", category.name);
     }
-  }, [category]);
+  }, [category, setValue]);
 
-  const handleUpdate = async () => {
-    if (!category || !name.trim()) return;
+  const handleUpdate = async (values: FormValues) => {
+    if (!category || !values.name.trim()) return;
 
     try {
       setLoading(true);
@@ -62,7 +81,7 @@ export default function EditDialog({
             ...(token ? { Authorization: `Bearer ${token}` } : {}),
           },
           body: JSON.stringify({
-            name: name.trim(),
+            name: values.name.trim(),
           }),
         },
       );
@@ -77,6 +96,7 @@ export default function EditDialog({
       toast.success("Category updated successfully");
 
       onOpenChange(false);
+      reset();
       router.refresh();
     } catch (error) {
       console.error(error);
@@ -95,7 +115,7 @@ export default function EditDialog({
           onOpenChange(value);
 
           if (!value) {
-            setName("");
+            reset();
           }
         }
       }}
@@ -103,33 +123,51 @@ export default function EditDialog({
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Edit Category</DialogTitle>
-          <DialogDescription>Update the category name.</DialogDescription>
+          <DialogDescription>
+            Update the category name.
+          </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-2">
-          <Label htmlFor="category-name">Category Name</Label>
+        <form
+          onSubmit={handleSubmit(handleUpdate)}
+          className="space-y-4"
+        >
+          <div className="space-y-2">
+            <Label htmlFor="category-name">Category Name</Label>
 
-          <Input
-            id="category-name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Enter category name"
-          />
-        </div>
+            <Input
+              id="category-name"
+              placeholder="Enter category name"
+              {...register("name", {
+                required: "Category name is required",
+              })}
+            />
 
-        <DialogFooter>
-          <Button
-            variant="outline"
-            disabled={loading}
-            onClick={() => onOpenChange(false)}
-          >
-            Cancel
-          </Button>
+            {errors.name && (
+              <p className="text-sm text-red-500">
+                {errors.name.message}
+              </p>
+            )}
+          </div>
 
-          <Button onClick={handleUpdate} disabled={loading || !name.trim()}>
-            {loading ? "Saving..." : "Save Changes"}
-          </Button>
-        </DialogFooter>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              disabled={loading}
+              onClick={() => onOpenChange(false)}
+            >
+              Cancel
+            </Button>
+
+            <Button
+              type="submit"
+              disabled={loading || !name?.trim()}
+            >
+              {loading ? "Saving..." : "Save Changes"}
+            </Button>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   );
