@@ -11,7 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-
+import { useRouter } from "next/navigation";
 import CreateDialog from "./create-dialog";
 import EditDialog from "./edit-dialog";
 import DeleteDialog from "./delete-dialog";
@@ -21,21 +21,11 @@ interface Category {
   name: string;
 }
 
-interface CategoriesTableProps {
-  categories: Category[];
-  currentPage: number;
-  totalPage: number;
-}
-
-export default function CategoriesTable({
-  categories, currentPage, totalPage,
-}: CategoriesTableProps) {
-  const [category, setCategory] = useState<Category[]>(categories);
-  const [ page, setPage ] = useState(currentPage);
+export default function CategoriesTable({ categories, currentPage, totalPage, }: { categories: Category[], currentPage: number, totalPage: number}) {
+  const router = useRouter();
   const [createOpen, setCreateOpen] = useState(false);
-  const [selectedCategory, setSelectedCategory] =
-    useState<Category | null>(null);
-
+  const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
+  
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
 
@@ -48,24 +38,6 @@ export default function CategoriesTable({
     setSelectedCategory(category);
     setDeleteOpen(true);
   };
-const fetchCategories = async (pageNumber: number) => {
-  try {
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/categories?page=${pageNumber}&limit=10`
-    );
-
-    if (!res.ok) {
-      throw new Error("Failed to fetch categories");
-    }
-
-    const result = await res.json();
-
-    setCategory(result.data);
-    setPage(result.page);
-  } catch (error) {
-    console.error("Failed to fetch categories:", error);
-  }
-};
   return (
     <>
       <div className="space-y-6">
@@ -77,7 +49,7 @@ const fetchCategories = async (pageNumber: number) => {
               </h1>
 
               <span className="rounded-md border bg-muted px-2 py-1 text-xs text-muted-foreground">
-                {category.length} Categories
+                {categories.length} Categories
               </span>
             </div>
 
@@ -107,8 +79,8 @@ const fetchCategories = async (pageNumber: number) => {
             </TableHeader>
 
             <TableBody>
-              {category.length > 0 ? (
-                category.map((category) => (
+              {categories.length > 0 ? (
+                categories.map((category) => (
                   <TableRow key={category._id}>
                     <TableCell className="font-medium py-4">
                       <div className="flex items-center gap-3">
@@ -167,20 +139,20 @@ const fetchCategories = async (pageNumber: number) => {
           <div className="flex items-center justify-between border-t px-6 py-4">
   <Button
     variant="outline"
-    disabled={page === 1}
-    onClick={() => fetchCategories(page - 1)}
+    disabled={currentPage === 1}
+    onClick={() => router.push(`?page=${currentPage - 1}`)}
   >
     Previous
   </Button>
 
   <span className="text-sm text-muted-foreground">
-    Page {page} of {totalPage}
+    Page {currentPage} of {totalPage}
   </span>
 
   <Button
     variant="outline"
-    disabled={page === totalPage}
-    onClick={() => fetchCategories(page + 1)}
+    disabled={currentPage === totalPage}
+    onClick={() => router.push(`?page=${currentPage + 1}`)}
   >
     Next
   </Button>
