@@ -20,6 +20,7 @@ export default async function CategoriesPage({ searchParams }: PageProps) {
   try {
     const res = await fetch(
       `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/categories?page=${page}&limit=10`,
+
       {
         cache: "no-store",
       },
@@ -35,9 +36,7 @@ export default async function CategoriesPage({ searchParams }: PageProps) {
   } catch (error) {
     console.error(error);
   }
-  console.log(categories);
-  console.log(currentPage);
-  console.log(totalPage);
+
   return (
     <div className="container max-w-5xl mx-auto py-8">
       <CategoriesTable
