@@ -1,3 +1,5 @@
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 import ProductsTable from "./_components/products-table";
 
 interface PageProps {
@@ -7,11 +9,12 @@ interface PageProps {
 }
 
 export default async function ProductsPage({ searchParams }: PageProps) {
-
-
   const params = await searchParams;
 
   const page = Number(params.page ?? "1");
+
+  const session = await getServerSession(authOptions);
+  const token = (session as any)?.accessToken;
 
   let products = [];
   let currentPage = page;
@@ -20,6 +23,11 @@ export default async function ProductsPage({ searchParams }: PageProps) {
   try {
     const res = await fetch(
       `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/products`,
+      {
+        headers: {
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+      }
     );
 
     if (res.ok) {
@@ -42,3 +50,4 @@ export default async function ProductsPage({ searchParams }: PageProps) {
     </div>
   );
 }
+

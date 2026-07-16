@@ -10,22 +10,28 @@ export async function proxy(request: NextRequest) {
     cookieName: "next-auth.session-token",
   });
 
-  console.log(token);
-  
-
+  const { pathname } = request.nextUrl;
   const isExpired = token?.accessTokenExpires && Date.now() > (token.accessTokenExpires as number);
 
+  // 1. If not authenticated or token is expired, redirect to /login
   if (!token || token.error === "AccessTokenExpired" || isExpired) {
-    return NextResponse.redirect(new URL("/login", request.url));
+    const loginUrl = new URL("/login", request.url);
+    loginUrl.searchParams.set("callbackUrl", request.url);
+    return NextResponse.redirect(loginUrl);
   }
 
-  if (token.role?.toLowerCase() !== "admin") {
-    return NextResponse.redirect(new URL("/", request.url));
+  // 2. Role-based authorization for /admin routes
+  if (pathname.startsWith("/admin")) {
+    if (token.role?.toLowerCase() !== "admin") {
+      // Redirect customers to /dashboard, and others to home /
+      const targetUrl = token.role?.toLowerCase() === "customer" ? "/dashboard" : "/";
+      return NextResponse.redirect(new URL(targetUrl, request.url));
+    }
   }
 
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/admin/:path*"],
+  matcher: ["/admin/:path*", "/dashboard/:path*"],
 };
