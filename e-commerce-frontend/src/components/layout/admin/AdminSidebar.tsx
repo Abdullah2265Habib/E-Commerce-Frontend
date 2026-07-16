@@ -34,7 +34,7 @@ const menuItems = [
     },
     {
         title: "Orders",
-        href: "/admin/orders",
+        href: "/admin/order",
         icon: ShoppingCart,
     },
     {
