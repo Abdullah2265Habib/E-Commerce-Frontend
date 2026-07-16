@@ -13,7 +13,9 @@ export async function proxy(request: NextRequest) {
   console.log(token);
   
 
-  if (!token) {
+  const isExpired = token?.accessTokenExpires && Date.now() > (token.accessTokenExpires as number);
+
+  if (!token || token.error === "AccessTokenExpired" || isExpired) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 

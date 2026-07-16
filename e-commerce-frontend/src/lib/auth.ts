@@ -67,11 +67,11 @@ export const authOptions: NextAuthOptions = {
         return token;
       }
 
-      // if (token.accessTokenExpires && Date.now() > token.accessTokenExpires) {
-      //   token.accessToken = null;
-      //   token.error = "AccessTokenExpired";
-      //   return token;
-      // }
+      if (token.accessTokenExpires && Date.now() > token.accessTokenExpires) {
+        token.accessToken = null;
+        token.error = "AccessTokenExpired";
+        return token;
+      }
 
       return token;
     },

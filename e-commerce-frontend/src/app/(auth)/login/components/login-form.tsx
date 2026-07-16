@@ -1,5 +1,7 @@
 "use client"
 
+import { useEffect } from "react"
+import { useSearchParams } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -29,6 +31,16 @@ export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
+  const searchParams = useSearchParams()
+  const error = searchParams.get("error")
+
+  useEffect(() => {
+    if (error === "unauthorized") {
+      toast.error("Unauthorized: Session expired. Please log in again.", {
+        id: "unauthorized-toast",
+      })
+    }
+  }, [error])
 
   const {
     register,

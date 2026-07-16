@@ -1,4 +1,3 @@
-import { requireAdmin } from "@/lib/require-admin";
 import CategoriesTable from "./_components/category-table";
 
 interface PageProps {
@@ -7,10 +6,8 @@ interface PageProps {
   }>;
 }
 
-export default async function CategoriesPage({
-  searchParams,
-}: PageProps) {
-  await requireAdmin();
+export default async function CategoriesPage({ searchParams }: PageProps) {
+
 
   const params = await searchParams;
 
@@ -25,7 +22,7 @@ export default async function CategoriesPage({
       `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/categories?page=${page}&limit=10`,
       {
         cache: "no-store",
-      }
+      },
     );
 
     if (res.ok) {

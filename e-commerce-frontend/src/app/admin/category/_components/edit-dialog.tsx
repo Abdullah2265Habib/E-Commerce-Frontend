@@ -86,6 +86,15 @@ export default function EditDialog({
         },
       );
 
+      if (res.status === 401) {
+        toast.error("Unauthorized: Session expired. Please log in again.", {
+          id: "unauthorized-toast",
+        });
+        onOpenChange(false);
+        router.push("/login");
+        return;
+      }
+
       const data = await res.json();
 
       if (!res.ok) {

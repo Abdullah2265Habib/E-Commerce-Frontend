@@ -1,6 +1,5 @@
 import AdminNavbar from "@/components/layout/admin/AdminNavbar";
 import AdminSidebar from "@/components/layout/admin/AdminSidebar";
-import { requireAdmin } from "@/lib/require-admin";
 
 export default async function AdminLayout({
   children,
