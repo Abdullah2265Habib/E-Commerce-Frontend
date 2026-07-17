@@ -34,6 +34,7 @@ export default function ProductsTable({
   currentPage: number;
   totalPage: number;
 }) {
+  const [images, setImages] = useState<File[]>([]);
   const [createOpen, setCreateOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [editOpen, setEditOpen] = useState(false);
@@ -83,8 +84,16 @@ export default function ProductsTable({
                 >
                   <AccordionTrigger className="px-6 py-4 hover:no-underline hover:bg-muted/50 transition-colors [&[data-state=open]]:bg-muted/30">
                     <div className="flex items-center gap-3 text-left flex-1 mr-4">
-                      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 shrink-0">
-                        <Package className="h-4 w-4 text-primary" />
+                      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 shrink-0 overflow-hidden border">
+                        {product.images && product.images.length > 0 && product.images[0] ? (
+                          <img
+                            src={product.images[0]}
+                            alt={product.name}
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          <Package className="h-4 w-4 text-primary" />
+                        )}
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="font-semibold text-sm truncate">{product.name}</p>

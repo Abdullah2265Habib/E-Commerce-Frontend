@@ -16,6 +16,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Plus, Trash2 } from "lucide-react";
 import type { Product } from "./products-table";
 
 interface EditDialogProps {
@@ -36,6 +37,9 @@ export default function EditDialog({ open, onOpenChange, product }: EditDialogPr
   const router = useRouter();
   const { data: session } = useSession();
   const [loading, setLoading] = useState(false);
+  const [existingImages, setExistingImages] = useState<string[]>([]);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [previews, setPreviews] = useState<string[]>([]);
 
   const {
     register,
@@ -60,8 +64,26 @@ export default function EditDialog({ open, onOpenChange, product }: EditDialogPr
       setValue("price", String(product.price));
       setValue("stock", String(product.stock));
       setValue("category", product.category);
+      setExistingImages(product.images || []);
+      setSelectedFiles([]);
     }
   }, [product, setValue]);
+
+  useEffect(() => {
+    const newPreviews = selectedFiles.map((file) => URL.createObjectURL(file));
+    setPreviews(newPreviews);
+    return () => {
+      newPreviews.forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, [selectedFiles]);
+
+  const removeExistingImage = (index: number) => {
+    setExistingImages((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const removeNewFile = (index: number) => {
+    setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
+  };
 
   const handleUpdate = async (values: FormValues) => {
     if (!product) return;
@@ -69,6 +91,34 @@ export default function EditDialog({ open, onOpenChange, product }: EditDialogPr
     try {
       setLoading(true);
       const token = (session as any)?.accessToken;
+
+      let uploadedUrls: string[] = [];
+      if (selectedFiles.length > 0) {
+        const formData = new FormData();
+        selectedFiles.forEach((file) => {
+          formData.append("images", file);
+        });
+
+        const uploadRes = await fetch(
+          `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/upload`,
+          {
+            method: "POST",
+            headers: {
+              ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            },
+            body: formData,
+          }
+        );
+
+        if (!uploadRes.ok) {
+          throw new Error("Failed to upload new product images");
+        }
+
+        const uploadData = await uploadRes.json();
+        uploadedUrls = uploadData.urls || [];
+      }
+
+      const finalImages = [...existingImages, ...uploadedUrls];
 
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/products/${product._id}`,
@@ -84,6 +134,7 @@ export default function EditDialog({ open, onOpenChange, product }: EditDialogPr
             price: parseFloat(values.price),
             stock: parseInt(values.stock, 10),
             category: values.category.trim(),
+            images: finalImages,
           }),
         }
       );
@@ -203,8 +254,76 @@ export default function EditDialog({ open, onOpenChange, product }: EditDialogPr
               placeholder="e.g. Electronics"
               {...register("category", { required: "Category is required" })}
             />
-            {errors.category && (
+             {errors.category && (
               <p className="text-xs text-red-500">{errors.category.message}</p>
+            )}
+          </div>
+
+          {/* Existing Product Images */}
+          {existingImages.length > 0 && (
+            <div className="space-y-1.5">
+              <Label>Existing Images</Label>
+              <div className="grid grid-cols-4 gap-2">
+                {existingImages.map((image, index) => (
+                  <div key={index} className="relative group aspect-square rounded-md overflow-hidden border">
+                    <img
+                      src={image}
+                      alt={`existing-${index}`}
+                      className="w-full h-full object-cover"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeExistingImage(index)}
+                      className="absolute top-1 right-1 bg-destructive text-destructive-foreground p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Upload New Images */}
+          <div className="space-y-2">
+            <Label htmlFor="edit-product-images">Upload New Images</Label>
+            <div className="border border-dashed rounded-md p-4 hover:bg-muted/50 transition-colors cursor-pointer relative flex flex-col items-center justify-center text-center space-y-1">
+              <input
+                id="edit-product-images"
+                type="file"
+                multiple
+                accept="image/*"
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                onChange={(e) => {
+                  if (e.target.files) {
+                    setSelectedFiles((prev) => [...prev, ...Array.from(e.target.files!)]);
+                  }
+                }}
+              />
+              <Plus className="h-5 w-5 text-muted-foreground" />
+              <span className="text-sm font-medium">Click to upload new images</span>
+              <span className="text-xs text-muted-foreground">PNG, JPG, WEBP</span>
+            </div>
+
+            {previews.length > 0 && (
+              <div className="grid grid-cols-4 gap-2 mt-2">
+                {previews.map((preview, index) => (
+                  <div key={index} className="relative group aspect-square rounded-md overflow-hidden border">
+                    <img
+                      src={preview}
+                      alt={`preview-${index}`}
+                      className="w-full h-full object-cover"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeNewFile(index)}
+                      className="absolute top-1 right-1 bg-destructive text-destructive-foreground p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
             )}
           </div>
 

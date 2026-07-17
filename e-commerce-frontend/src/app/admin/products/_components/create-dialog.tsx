@@ -16,6 +16,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Plus, Trash2 } from "lucide-react";
 
 interface CreateDialogProps {
   open: boolean;
@@ -33,6 +34,8 @@ type FormValues = {
 export default function CreateDialog({ open, onOpenChange }: CreateDialogProps) {
   const router = useRouter();
   const { data: session } = useSession();
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [previews, setPreviews] = useState<string[]>([]);
 
   const {
     register,
@@ -49,9 +52,47 @@ export default function CreateDialog({ open, onOpenChange }: CreateDialogProps) 
     },
   });
 
+  useEffect(() => {
+    const newPreviews = selectedFiles.map((file) => URL.createObjectURL(file));
+    setPreviews(newPreviews);
+    return () => {
+      newPreviews.forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, [selectedFiles]);
+
+  const removeFile = (index: number) => {
+    setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
   const handleCreate = async (values: FormValues) => {
     try {
       const token = (session as any)?.accessToken;
+
+      let imageUrls: string[] = [];
+      if (selectedFiles.length > 0) {
+        const formData = new FormData();
+        selectedFiles.forEach((file) => {
+          formData.append("images", file);
+        });
+
+        const uploadRes = await fetch(
+          `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/upload`,
+          {
+            method: "POST",
+            headers: {
+              ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            },
+            body: formData,
+          }
+        );
+
+        if (!uploadRes.ok) {
+          throw new Error("Failed to upload product images");
+        }
+
+        const uploadData = await uploadRes.json();
+        imageUrls = uploadData.urls || [];
+      }
 
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/products`,
@@ -67,6 +108,7 @@ export default function CreateDialog({ open, onOpenChange }: CreateDialogProps) 
             price: parseFloat(values.price),
             stock: parseInt(values.stock, 10),
             category: values.category.trim(),
+            images: imageUrls,
           }),
         }
       );
@@ -89,6 +131,7 @@ export default function CreateDialog({ open, onOpenChange }: CreateDialogProps) 
 
       toast.success("Product created successfully");
       reset();
+      setSelectedFiles([]);
       onOpenChange(false);
       router.refresh();
     } catch (error) {
@@ -96,6 +139,7 @@ export default function CreateDialog({ open, onOpenChange }: CreateDialogProps) 
       toast.error("Something went wrong. Please try again.");
     }
   };
+
 
   return (
     <Dialog
@@ -186,6 +230,49 @@ export default function CreateDialog({ open, onOpenChange }: CreateDialogProps) 
             />
             {errors.category && (
               <p className="text-xs text-red-500">{errors.category.message}</p>
+            )}
+          </div>
+
+          {/* Product Images */}
+          <div className="space-y-2">
+            <Label htmlFor="product-images">Product Images</Label>
+            <div className="border border-dashed rounded-md p-4 hover:bg-muted/50 transition-colors cursor-pointer relative flex flex-col items-center justify-center text-center space-y-1">
+              <input
+                id="product-images"
+                type="file"
+                multiple
+                accept="image/*"
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                onChange={(e) => {
+                  if (e.target.files) {
+                    setSelectedFiles((prev) => [...prev, ...Array.from(e.target.files!)]);
+                  }
+                }}
+              />
+              <Plus className="h-5 w-5 text-muted-foreground" />
+              <span className="text-sm font-medium">Click to upload images</span>
+              <span className="text-xs text-muted-foreground">PNG, JPG, WEBP</span>
+            </div>
+
+            {previews.length > 0 && (
+              <div className="grid grid-cols-4 gap-2 mt-2">
+                {previews.map((preview, index) => (
+                  <div key={index} className="relative group aspect-square rounded-md overflow-hidden border">
+                    <img
+                      src={preview}
+                      alt={`preview-${index}`}
+                      className="w-full h-full object-cover"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeFile(index)}
+                      className="absolute top-1 right-1 bg-destructive text-destructive-foreground p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
             )}
           </div>
 
