@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -25,13 +27,21 @@ interface EditDialogProps {
   product: Product | null;
 }
 
-type FormValues = {
-  name: string;
-  description: string;
-  price: string;
-  stock: string;
-  category: string;
-};
+const editProductSchema = z.object({
+  name: z.string().trim().min(1, "Product name is required"),
+  description: z.string().trim().optional(),
+  price: z.string().trim().min(1, "Price is required").refine((val) => {
+    const num = parseFloat(val);
+    return !isNaN(num) && num >= 0;
+  }, "Price must be a valid number ≥ 0"),
+  stock: z.string().trim().min(1, "Stock is required").refine((val) => {
+    const num = parseInt(val, 10);
+    return !isNaN(num) && num >= 0;
+  }, "Stock must be a valid integer ≥ 0"),
+  category: z.string().trim().min(1, "Category is required"),
+});
+
+type FormValues = z.infer<typeof editProductSchema>;
 
 export default function EditDialog({ open, onOpenChange, product }: EditDialogProps) {
   const router = useRouter();
@@ -48,6 +58,7 @@ export default function EditDialog({ open, onOpenChange, product }: EditDialogPr
     reset,
     formState: { errors },
   } = useForm<FormValues>({
+    resolver: zodResolver(editProductSchema),
     defaultValues: {
       name: "",
       description: "",
@@ -130,7 +141,7 @@ export default function EditDialog({ open, onOpenChange, product }: EditDialogPr
           },
           body: JSON.stringify({
             name: values.name.trim(),
-            description: values.description.trim(),
+            description: values.description?.trim() || "",
             price: parseFloat(values.price),
             stock: parseInt(values.stock, 10),
             category: values.category.trim(),
@@ -192,7 +203,7 @@ export default function EditDialog({ open, onOpenChange, product }: EditDialogPr
             <Input
               id="edit-product-name"
               placeholder="e.g. Wireless Headphones"
-              {...register("name", { required: "Product name is required" })}
+              {...register("name")}
             />
             {errors.name && (
               <p className="text-xs text-red-500">{errors.name.message}</p>
@@ -207,6 +218,9 @@ export default function EditDialog({ open, onOpenChange, product }: EditDialogPr
               placeholder="Brief description of the product"
               {...register("description")}
             />
+            {errors.description && (
+              <p className="text-xs text-red-500">{errors.description.message}</p>
+            )}
           </div>
 
           {/* Price & Stock */}
@@ -219,10 +233,7 @@ export default function EditDialog({ open, onOpenChange, product }: EditDialogPr
                 step="0.01"
                 min="0"
                 placeholder="0.00"
-                {...register("price", {
-                  required: "Price is required",
-                  min: { value: 0, message: "Price must be ≥ 0" },
-                })}
+                {...register("price")}
               />
               {errors.price && (
                 <p className="text-xs text-red-500">{errors.price.message}</p>
@@ -235,10 +246,7 @@ export default function EditDialog({ open, onOpenChange, product }: EditDialogPr
                 type="number"
                 min="0"
                 placeholder="0"
-                {...register("stock", {
-                  required: "Stock is required",
-                  min: { value: 0, message: "Stock must be ≥ 0" },
-                })}
+                {...register("stock")}
               />
               {errors.stock && (
                 <p className="text-xs text-red-500">{errors.stock.message}</p>
@@ -252,9 +260,9 @@ export default function EditDialog({ open, onOpenChange, product }: EditDialogPr
             <Input
               id="edit-product-category"
               placeholder="e.g. Electronics"
-              {...register("category", { required: "Category is required" })}
+              {...register("category")}
             />
-             {errors.category && (
+            {errors.category && (
               <p className="text-xs text-red-500">{errors.category.message}</p>
             )}
           </div>

@@ -2,6 +2,8 @@
 
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -36,6 +38,16 @@ interface AddToCartDialogProps {
   product: Product | null;
 }
 
+const getAddToCartSchema = (stock: number) => z.object({
+  quantity: z.string().trim().min(1, "Quantity is required").refine((val) => {
+    const num = parseInt(val, 10);
+    return !isNaN(num) && num >= 1;
+  }, "Quantity must be at least 1").refine((val) => {
+    const num = parseInt(val, 10);
+    return num <= stock;
+  }, `Maximum is ${stock} (available stock)`),
+});
+
 type FormValues = {
   quantity: string;
 };
@@ -58,6 +70,8 @@ export default function AddToCartDialog({
   onOpenChange,
   product,
 }: AddToCartDialogProps) {
+  const schema = getAddToCartSchema(product?.stock ?? 0);
+
   const {
     register,
     handleSubmit,
@@ -65,6 +79,7 @@ export default function AddToCartDialog({
     watch,
     formState: { errors },
   } = useForm<FormValues>({
+    resolver: zodResolver(schema),
     defaultValues: { quantity: "1" },
   });
 
@@ -219,14 +234,7 @@ export default function AddToCartDialog({
               max={product.stock}
               disabled={product.stock === 0}
               placeholder="1"
-              {...register("quantity", {
-                required: "Quantity is required",
-                min: { value: 1, message: "Minimum quantity is 1" },
-                max: {
-                  value: product.stock,
-                  message: `Maximum is ${product.stock} (available stock)`,
-                },
-              })}
+              {...register("quantity")}
             />
             {errors.quantity && (
               <p className="text-xs text-red-500">{errors.quantity.message}</p>

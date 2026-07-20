@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -33,15 +35,17 @@ interface CartPanelProps {
   onOpenChange: (open: boolean) => void;
 }
 
-type ShippingFormValues = {
-  userId: string;
-  street: string;
-  city: string;
-  country: string;
-  zip: string;
-  status: string;
-  paymentStatus: string;
-};
+const shippingFormSchema = z.object({
+  userId: z.string().trim().min(1, "Please select a customer"),
+  street: z.string().trim().min(1, "Street is required"),
+  city: z.string().trim().min(1, "City is required"),
+  country: z.string().trim().min(1, "Country is required"),
+  zip: z.string().trim().min(1, "Zip is required"),
+  status: z.string().trim().min(1, "Order status is required"),
+  paymentStatus: z.string().trim().min(1, "Payment status is required"),
+});
+
+type FormValues = z.infer<typeof shippingFormSchema>;
 
 interface UserOption {
   _id: string;
@@ -64,7 +68,8 @@ export default function CartToOrderDialog({
     handleSubmit,
     reset,
     formState: { errors, isSubmitting },
-  } = useForm<ShippingFormValues>({
+  } = useForm<FormValues>({
+    resolver: zodResolver(shippingFormSchema),
     defaultValues: {
       userId: "",
       street: "",
@@ -138,7 +143,7 @@ export default function CartToOrderDialog({
     0
   );
 
-  const handlePlaceOrder = async (values: ShippingFormValues) => {
+  const handlePlaceOrder = async (values: FormValues) => {
     if (cartItems.length === 0) {
       toast.error("Your cart is empty.");
       return;
@@ -382,9 +387,7 @@ export default function CartToOrderDialog({
                 <select
                   id="cart-order-customer"
                   className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                  {...register("userId", {
-                    required: "Please select a customer",
-                  })}
+                  {...register("userId")}
                 >
                   <option value="">Select a customer...</option>
                   {users.map((user) => (
@@ -408,7 +411,7 @@ export default function CartToOrderDialog({
               <Input
                 id="cart-street"
                 placeholder="Street address"
-                {...register("street", { required: "Street is required" })}
+                {...register("street")}
               />
               {errors.street && (
                 <p className="text-xs text-red-500">{errors.street.message}</p>
@@ -418,7 +421,7 @@ export default function CartToOrderDialog({
                   <Input
                     id="cart-city"
                     placeholder="City"
-                    {...register("city", { required: "City is required" })}
+                    {...register("city")}
                   />
                   {errors.city && (
                     <p className="text-xs text-red-500">
@@ -430,7 +433,7 @@ export default function CartToOrderDialog({
                   <Input
                     id="cart-country"
                     placeholder="Country"
-                    {...register("country", { required: "Country is required" })}
+                    {...register("country")}
                   />
                   {errors.country && (
                     <p className="text-xs text-red-500">
@@ -442,7 +445,7 @@ export default function CartToOrderDialog({
                   <Input
                     id="cart-zip"
                     placeholder="Zip"
-                    {...register("zip", { required: "Zip is required" })}
+                    {...register("zip")}
                   />
                   {errors.zip && (
                     <p className="text-xs text-red-500">{errors.zip.message}</p>
@@ -465,6 +468,9 @@ export default function CartToOrderDialog({
                   <option value="shipped">Shipped</option>
                   <option value="cancelled">Cancelled</option>
                 </select>
+                {errors.status && (
+                  <p className="text-xs text-red-500">{errors.status.message}</p>
+                )}
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="cart-payment-status">Payment Status</Label>
@@ -478,6 +484,9 @@ export default function CartToOrderDialog({
                   <option value="failed">Failed</option>
                   <option value="refunded">Refunded</option>
                 </select>
+                {errors.paymentStatus && (
+                  <p className="text-xs text-red-500">{errors.paymentStatus.message}</p>
+                )}
               </div>
             </div>
 

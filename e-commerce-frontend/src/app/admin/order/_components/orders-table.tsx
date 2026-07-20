@@ -43,11 +43,9 @@ export default function OrdersTable({
   const [cartOpen, setCartOpen] = useState(false);
   const [cartCount, setCartCount] = useState(0);
 
-  // Read cart count from localStorage (updates when dialog closes)
   useEffect(() => {
     const updateCount = () => setCartCount(getCartItems().length);
     updateCount();
-    // Refresh on storage events (cross-tab) or when user navigates back
     window.addEventListener("storage", updateCount);
     window.addEventListener("focus", updateCount);
     return () => {
@@ -66,7 +64,6 @@ export default function OrdersTable({
     setDeleteOpen(true);
   };
 
-  // Helper for Order Status Badge
   const getOrderStatusBadge = (status?: string) => {
     const s = (status || "pending").toLowerCase();
     switch (s) {

@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -23,10 +25,12 @@ interface EditDialogProps {
   order: Order | null;
 }
 
-type FormValues = {
-  status: string;
-  paymentStatus: string;
-};
+const editOrderSchema = z.object({
+  status: z.string().trim().min(1, "Order status is required"),
+  paymentStatus: z.string().trim().min(1, "Payment status is required"),
+});
+
+type FormValues = z.infer<typeof editOrderSchema>;
 
 export default function EditDialog({ open, onOpenChange, order }: EditDialogProps) {
   const router = useRouter();
@@ -40,6 +44,7 @@ export default function EditDialog({ open, onOpenChange, order }: EditDialogProp
     reset,
     formState: { errors },
   } = useForm<FormValues>({
+    resolver: zodResolver(editOrderSchema),
     defaultValues: {
       status: "",
       paymentStatus: "",
@@ -132,7 +137,7 @@ export default function EditDialog({ open, onOpenChange, order }: EditDialogProp
             <select
               id="order-status"
               className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-              {...register("status", { required: "Order status is required" })}
+              {...register("status")}
             >
               <option value="pending">Pending</option>
               <option value="paid">Paid</option>
@@ -150,7 +155,7 @@ export default function EditDialog({ open, onOpenChange, order }: EditDialogProp
             <select
               id="payment-status"
               className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-              {...register("paymentStatus", { required: "Payment status is required" })}
+              {...register("paymentStatus")}
             >
               <option value="pending">Pending</option>
               <option value="paid">Paid</option>
