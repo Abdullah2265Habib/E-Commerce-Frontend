@@ -2,6 +2,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import ProductsTable from "./_components/products-table";
 
+
 interface PageProps {
   searchParams: Promise<{
     page?: string;

@@ -10,10 +10,12 @@ import {
   LogOut,
   ShoppingBag,
   Heart,
+  Star,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { signOut } from "next-auth/react";
 
 const menuItems = [
   {
@@ -35,6 +37,11 @@ const menuItems = [
     title: "Wishlists",
     href: "/dashboard/wishlists",
     icon: Heart,
+  },
+  {
+    title: "Ratings",
+    href: "/dashboard/rating",
+    icon: Star,
   },
   {
     title: "Cart",
@@ -144,21 +151,14 @@ export default function Sidebar() {
                 p-4
                 border-t
             ">
-
-                <Button
-                    variant="outline"
-                    className="
-                        w-full
-                        justify-start
-                        gap-3
-                    "
-                >
-
-                    <LogOut className="h-5 w-5"/>
-
-                    Logout
-
-                </Button>
+                    <Button
+                        variant="outline"
+                        className="w-full justify-start gap-3"
+                        onClick={() => signOut({ callbackUrl: "/login" })}
+                        >
+                        <LogOut className="h-5 w-5" />
+                        Logout
+                    </Button>
 
             </div>
 

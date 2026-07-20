@@ -95,10 +95,8 @@ export default function CreateDialog({ open, onOpenChange }: CreateDialogProps) 
     name: "items",
   });
 
-  // Watch items to calculate total dynamically
   const watchedItems = watch("items");
 
-  // Fetch users and products when dialog opens
   useEffect(() => {
     if (!open) return;
 
@@ -133,7 +131,6 @@ export default function CreateDialog({ open, onOpenChange }: CreateDialogProps) 
     fetchOptions();
   }, [open, session]);
 
-  // Calculate order total
   const calculatedTotal = (watchedItems || []).reduce((acc, curr) => {
     const prod = products.find((p) => p._id === curr.product);
     const qty = parseInt(curr.quantity || "0", 10);

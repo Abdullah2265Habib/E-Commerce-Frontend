@@ -14,6 +14,7 @@ import {
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { signOut } from "next-auth/react";
 
 
 const menuItems = [
@@ -142,21 +143,14 @@ export default function AdminSidebar() {
                 p-4
                 border-t
             ">
-
-                <Button
-                    variant="outline"
-                    className="
-                        w-full
-                        justify-start
-                        gap-3
-                    "
-                >
-
-                    <LogOut className="h-5 w-5"/>
-
-                    Logout
-
-                </Button>
+                    <Button
+                        variant="outline"
+                        className="w-full justify-start gap-3"
+                        onClick={() => signOut({ callbackUrl: "/login" })}
+                        >
+                        <LogOut className="h-5 w-5" />
+                        Logout
+                    </Button>
 
             </div>
 
