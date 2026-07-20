@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { useSession } from "next-auth/react";
+import { toast } from "sonner";
 import {
   Package,
   DollarSign,
@@ -10,6 +12,7 @@ import {
   ShoppingCart,
   ChevronLeft,
   ChevronRight,
+  Heart,
 } from "lucide-react";
 import {
   Accordion,
@@ -40,12 +43,56 @@ export default function ProductsTable({
   currentPage: number;
   totalPage: number;
 }) {
+  const { data: session } = useSession();
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [cartOpen, setCartOpen] = useState(false);
+  const [wishlistLoading, setWishlistLoading] = useState<string | null>(null);
 
   const handleAddToCart = (product: Product) => {
     setSelectedProduct(product);
     setCartOpen(true);
+  };
+
+  const handleAddToWishlist = async (product: Product) => {
+    try {
+      setWishlistLoading(product._id);
+      const token = (session as any)?.accessToken;
+
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_API_URL}/wishlist`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ wishlistProductId: product._id }),
+      });
+
+      if (res.status === 401) {
+        toast.error("Session expired. Please log in again.");
+        return;
+      }
+
+      const data = await res.json();
+      if (!res.ok) {
+        toast.error(data.message || "Failed to add to wishlist");
+        return;
+      }
+
+      toast.success(`${product.name} added to wishlist!`, {
+        icon: <Heart className="h-4 w-4 text-rose-500 fill-rose-500" />,
+        action: {
+          label: "View Wishlist",
+          onClick: () => {
+            window.location.href = "/dashboard/wishlists";
+          },
+        },
+      });
+    } catch (error) {
+      console.error(error);
+      toast.error("Something went wrong. Please try again.");
+    } finally {
+      setWishlistLoading(null);
+    }
   };
 
   return (
@@ -167,7 +214,18 @@ export default function ProductsTable({
                       )}
 
                       {/* Actions */}
-                      <div className="flex items-center justify-end pt-2 border-t">
+                      <div className="flex items-center justify-between pt-2 border-t">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          disabled={wishlistLoading === product._id}
+                          onClick={() => handleAddToWishlist(product)}
+                          className="gap-1.5 border-rose-200 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/20"
+                        >
+                          <Heart className={`h-3.5 w-3.5 ${wishlistLoading === product._id ? 'animate-pulse' : 'text-rose-500 fill-rose-500'}`} />
+                          {wishlistLoading === product._id ? "Saving..." : "Add to Wishlist"}
+                        </Button>
                         <Button
                           size="sm"
                           disabled={product.stock === 0}

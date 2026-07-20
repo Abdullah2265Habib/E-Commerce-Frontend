@@ -33,7 +33,7 @@ const menuItems = [
   },
   {
     title: "Wishlists",
-    href: "/dashboard/wishlist",
+    href: "/dashboard/wishlists",
     icon: Heart,
   },
   {
