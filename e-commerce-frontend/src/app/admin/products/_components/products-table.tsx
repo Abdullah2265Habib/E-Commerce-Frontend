@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Plus, ChevronDown, Edit2, Trash2, Package, DollarSign, Layers, BarChart2 } from "lucide-react";
+import { Plus, Edit2, Trash2, Package, DollarSign, Layers, BarChart2, ShoppingCart } from "lucide-react";
 import {
   Accordion,
   AccordionContent,
@@ -14,6 +14,7 @@ import Link from "next/link";
 import CreateDialog from "./create-dialog";
 import EditDialog from "./edit-dialog";
 import DeleteDialog from "./delete-dialog";
+import AddToCartDialog from "./add-to-cart-dialog";
 
 export interface Product {
   _id: string;
@@ -34,11 +35,11 @@ export default function ProductsTable({
   currentPage: number;
   totalPage: number;
 }) {
-  const [images, setImages] = useState<File[]>([]);
   const [createOpen, setCreateOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [cartOpen, setCartOpen] = useState(false);
 
   const handleEdit = (product: Product) => {
     setSelectedProduct(product);
@@ -48,6 +49,11 @@ export default function ProductsTable({
   const handleDelete = (product: Product) => {
     setSelectedProduct(product);
     setDeleteOpen(true);
+  };
+
+  const handleAddToCart = (product: Product) => {
+    setSelectedProduct(product);
+    setCartOpen(true);
   };
 
   return (
@@ -159,22 +165,33 @@ export default function ProductsTable({
                       )}
 
                       {/* Actions */}
-                      <div className="flex items-center gap-2 pt-2 border-t">
+                      <div className="flex items-center justify-between gap-2 pt-2 border-t">
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleEdit(product)}
+                          >
+                            <Edit2 className="mr-1.5 h-3.5 w-3.5" />
+                            Edit
+                          </Button>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => handleDelete(product)}
+                          >
+                            <Trash2 className="mr-1.5 h-3.5 w-3.5" />
+                            Delete
+                          </Button>
+                        </div>
                         <Button
-                          variant="outline"
                           size="sm"
-                          onClick={() => handleEdit(product)}
+                          disabled={product.stock === 0}
+                          onClick={() => handleAddToCart(product)}
+                          className="gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white"
                         >
-                          <Edit2 className="mr-1.5 h-3.5 w-3.5" />
-                          Edit
-                        </Button>
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          onClick={() => handleDelete(product)}
-                        >
-                          <Trash2 className="mr-1.5 h-3.5 w-3.5" />
-                          Delete
+                          <ShoppingCart className="h-3.5 w-3.5" />
+                          {product.stock === 0 ? "Out of Stock" : "Add to Cart"}
                         </Button>
                       </div>
                     </div>
@@ -240,6 +257,12 @@ export default function ProductsTable({
       <DeleteDialog
         open={deleteOpen}
         onOpenChange={setDeleteOpen}
+        product={selectedProduct}
+      />
+
+      <AddToCartDialog
+        open={cartOpen}
+        onOpenChange={setCartOpen}
         product={selectedProduct}
       />
     </>
