@@ -19,18 +19,7 @@ import { Label } from "@/components/ui/label";
 import { ShoppingCart, Package, DollarSign, Layers, BarChart2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import type { Product } from "./products-table";
-
-export const CART_STORAGE_KEY = "admin_cart_items";
-
-export interface CartItem {
-  productId: string;
-  productName: string;
-  unitPrice: number;
-  quantity: number;
-  category: string;
-  imageUrl?: string;
-  stock: number;
-}
+import { useCart } from "@/components/providers/cart-context";
 
 interface AddToCartDialogProps {
   open: boolean;
@@ -38,38 +27,30 @@ interface AddToCartDialogProps {
   product: Product | null;
 }
 
-const getAddToCartSchema = (stock: number) => z.object({
-  quantity: z.string().trim().min(1, "Quantity is required").refine((val) => {
-    const num = parseInt(val, 10);
-    return !isNaN(num) && num >= 1;
-  }, "Quantity must be at least 1").refine((val) => {
-    const num = parseInt(val, 10);
-    return num <= stock;
-  }, `Maximum is ${stock} (available stock)`),
-});
+const getAddToCartSchema = (stock: number) =>
+  z.object({
+    quantity: z
+      .string()
+      .trim()
+      .min(1, "Quantity is required")
+      .refine((val) => {
+        const num = parseInt(val, 10);
+        return !isNaN(num) && num >= 1;
+      }, "Quantity must be at least 1")
+      .refine((val) => {
+        const num = parseInt(val, 10);
+        return num <= stock;
+      }, `Maximum is ${stock} (available stock)`),
+  });
 
-type FormValues = {
-  quantity: string;
-};
-
-export function getCartItems(): CartItem[] {
-  if (typeof window === "undefined") return [];
-  try {
-    return JSON.parse(localStorage.getItem(CART_STORAGE_KEY) || "[]");
-  } catch {
-    return [];
-  }
-}
-
-export function saveCartItems(items: CartItem[]): void {
-  localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
-}
+type FormValues = { quantity: string };
 
 export default function AddToCartDialog({
   open,
   onOpenChange,
   product,
 }: AddToCartDialogProps) {
+  const { addItem, openDrawer } = useCart();
   const schema = getAddToCartSchema(product?.stock ?? 0);
 
   const {
@@ -98,48 +79,29 @@ export default function AddToCartDialog({
       toast.error("Please enter a valid quantity.");
       return;
     }
-    if (qty > product.stock) {
-      toast.error(`Only ${product.stock} units available in stock.`);
+
+    const result = addItem({
+      productId: product._id,
+      productName: product.name,
+      unitPrice: product.price,
+      quantity: qty,
+      category: product.category,
+      imageUrl: product.images?.[0],
+      stock: product.stock,
+    });
+
+    if (!result.ok) {
+      toast.error(result.message);
       return;
     }
 
-    const existing = getCartItems();
-    const idx = existing.findIndex((c) => c.productId === product._id);
-
-    if (idx !== -1) {
-      const newQty = existing[idx].quantity + qty;
-      if (newQty > product.stock) {
-        toast.error(
-          `Cannot add ${qty} more. Cart already has ${existing[idx].quantity} units. Only ${product.stock} in stock.`
-        );
-        return;
-      }
-      existing[idx].quantity = newQty;
-      saveCartItems(existing);
-      toast.success(`Updated cart: ${product.name} (×${newQty})`, {
-        icon: <ShoppingCart className="h-4 w-4" />,
-      });
-    } else {
-      const newItem: CartItem = {
-        productId: product._id,
-        productName: product.name,
-        unitPrice: product.price,
-        quantity: qty,
-        category: product.category,
-        imageUrl: product.images?.[0],
-        stock: product.stock,
-      };
-      saveCartItems([...existing, newItem]);
-      toast.success(`Added to cart: ${product.name} (×${qty})`, {
-        icon: <ShoppingCart className="h-4 w-4" />,
-        action: {
-          label: "View Orders",
-          onClick: () => {
-            window.location.href = "/dashboard/order";
-          },
-        },
-      });
-    }
+    toast.success(`Added to cart: ${product.name} (×${qty})`, {
+      icon: <ShoppingCart className="h-4 w-4" />,
+      action: {
+        label: "View Cart",
+        onClick: openDrawer,
+      },
+    });
 
     onOpenChange(false);
   };
@@ -271,3 +233,4 @@ export default function AddToCartDialog({
     </Dialog>
   );
 }
+
