@@ -85,8 +85,6 @@ export default function EditDialog({ open, onOpenChange, order }: EditDialogProp
       }
 
       const data = await res.json();
-      console.log(res.status);
-      console.log(JSON.stringify(data.errors, null, 2));
 
       if (!res.ok) {
         toast.error(
