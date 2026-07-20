@@ -143,13 +143,30 @@ export default function AdminSidebar() {
                 p-4
                 border-t
             ">
-                    <Button
+                    {/* <Button
                         variant="outline"
                         className="w-full justify-start gap-3"
                         onClick={() => signOut({ callbackUrl: "/login" })}
                         >
                         <LogOut className="h-5 w-5" />
                         Logout
+                    </Button> */}
+                    <Button
+                        variant="outline"
+                        onClick={() => signOut({ callbackUrl: "/login" })}
+                        className="
+                            w-full justify-start gap-3 group
+                            px-4 py-3 h-auto 
+                            border border-slate-200 dark:border-slate-800 rounded-xl
+                            bg-white dark:bg-slate-950 text-slate-600 dark:text-slate-400
+                            hover:bg-red-50 hover:text-red-600 hover:border-red-200
+                            dark:hover:bg-red-950/30 dark:hover:text-red-400 dark:hover:border-red-900/50
+                            hover:shadow-sm hover:shadow-red-500/5
+                            transition-all duration-200 ease-in-out
+                        "
+                        >
+                        <LogOut className="h-5 w-5 transition-transform duration-200 group-hover:translate-x-0.5" />
+                        <span className="font-medium">Logout</span>
                     </Button>
 
             </div>
