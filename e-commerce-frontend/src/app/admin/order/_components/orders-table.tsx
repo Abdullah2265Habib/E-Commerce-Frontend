@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Plus,
@@ -23,6 +23,8 @@ import Link from "next/link";
 import CreateDialog from "./create-dialog";
 import EditDialog from "./edit-dialog";
 import DeleteDialog from "./delete-dialog";
+import CartToOrderDialog from "./cart-to-order-dialog";
+import { getCartItems } from "../../products/_components/add-to-cart-dialog";
 import type { Order } from "./delete-dialog";
 
 export default function OrdersTable({
@@ -38,6 +40,21 @@ export default function OrdersTable({
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [cartOpen, setCartOpen] = useState(false);
+  const [cartCount, setCartCount] = useState(0);
+
+  // Read cart count from localStorage (updates when dialog closes)
+  useEffect(() => {
+    const updateCount = () => setCartCount(getCartItems().length);
+    updateCount();
+    // Refresh on storage events (cross-tab) or when user navigates back
+    window.addEventListener("storage", updateCount);
+    window.addEventListener("focus", updateCount);
+    return () => {
+      window.removeEventListener("storage", updateCount);
+      window.removeEventListener("focus", updateCount);
+    };
+  }, []);
 
   const handleEdit = (order: Order) => {
     setSelectedOrder(order);
@@ -93,10 +110,28 @@ export default function OrdersTable({
               Manage and track customer purchases, payment confirmations, and shipments.
             </p>
           </div>
-          <Button onClick={() => setCreateOpen(true)}>
-            <Plus className="mr-2 h-4 w-4" />
-            Create Order
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setCartCount(getCartItems().length);
+                setCartOpen(true);
+              }}
+              className="relative gap-2"
+            >
+              <ShoppingCart className="h-4 w-4" />
+              Cart
+              {cartCount > 0 && (
+                <span className="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-primary-foreground text-[10px] font-bold">
+                  {cartCount}
+                </span>
+              )}
+            </Button>
+            <Button onClick={() => setCreateOpen(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              Create Order
+            </Button>
+          </div>
         </div>
 
         {/* Order List */}
@@ -284,6 +319,14 @@ export default function OrdersTable({
         open={deleteOpen}
         onOpenChange={setDeleteOpen}
         order={selectedOrder}
+      />
+
+      <CartToOrderDialog
+        open={cartOpen}
+        onOpenChange={(value) => {
+          setCartOpen(value);
+          if (!value) setCartCount(getCartItems().length);
+        }}
       />
     </>
   );

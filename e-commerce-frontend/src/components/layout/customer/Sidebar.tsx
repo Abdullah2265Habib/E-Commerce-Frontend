@@ -23,7 +23,7 @@ const menuItems = [
   },
   {
     title: "Products",
-    href: "/dashboard/products",
+    href: "/dashboard/product",
     icon: Package,
   },
   {
