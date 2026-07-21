@@ -86,14 +86,14 @@ export default function Sidebar() {
                 border-b
             ">
                 <Link
-                    href="/admin"
+                    href="/dashboard"
                     className="
                         text-xl
                         font-bold
                         tracking-tight
                     "
                 >
-                    AdminPanel
+                    CustomerPanel
                 </Link>
             </div>
 
