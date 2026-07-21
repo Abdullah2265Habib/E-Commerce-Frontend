@@ -29,18 +29,18 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 
-/* ─── Schema ──────────────────────────────────────────────────── */
+
 
 const checkoutSchema = z.object({
-  street: z.string().trim().min(3, "Street is required"),
-  city: z.string().trim().min(2, "City is required"),
-  country: z.string().trim().min(2, "Country is required"),
-  zip: z.string().trim().min(3, "Zip / postal code is required"),
+  street: z.string().trim().min(1, "Street is required"),
+  city: z.string().trim().min(1, "City is required"),
+  country: z.string().trim().min(1, "Country is required"),
+  zip: z.string().trim().min(1, "Zip / postal code is required"),
 });
 
 type CheckoutFormValues = z.infer<typeof checkoutSchema>;
 
-/* ─── Info tile ───────────────────────────────────────────────── */
+
 
 function InfoTile({
   icon,
@@ -61,8 +61,6 @@ function InfoTile({
     </div>
   );
 }
-
-/* ─── Cart Page ───────────────────────────────────────────────── */
 
 export default function CartPage() {
   const { data: session } = useSession();
@@ -92,7 +90,7 @@ export default function CartPage() {
     },
   });
 
-  /* Group by category */
+
   const grouped = items.reduce<Record<string, typeof items>>((acc, item) => {
     const cat = item.category || "Uncategorized";
     if (!acc[cat]) acc[cat] = [];
@@ -122,7 +120,6 @@ export default function CartPage() {
 
     setIsOrdering(true);
     try {
-      /* Step 1 – Create the order */
       const orderRes = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/orders`,
         {
@@ -163,9 +160,8 @@ export default function CartPage() {
         return;
       }
 
-      /* Step 2 – Create payment intent → get Stripe checkout URL */
       const paymentRes = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/orders/${orderId}/payment-intent`,
+        `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/payments/${orderId}`,
         {
           method: "POST",
           headers: {
@@ -189,7 +185,6 @@ export default function CartPage() {
       clearCart();
       reset();
 
-      /* Step 3 – Redirect to Stripe checkout */
       if (paymentData.url) {
         window.location.href = paymentData.url;
       } else {
@@ -202,7 +197,7 @@ export default function CartPage() {
     }
   };
 
-  /* ── Empty state ── */
+
   if (items.length === 0) {
     return (
       <div className="container max-w-5xl mx-auto py-16 flex flex-col items-center text-center gap-4">
@@ -223,7 +218,7 @@ export default function CartPage() {
     );
   }
 
-  /* ── Main view ── */
+
   return (
     <div className="container max-w-5xl mx-auto py-8">
       <div className="space-y-6">
@@ -435,7 +430,17 @@ export default function CartPage() {
                 </div>
               </div>
 
-
+              <div className="space-y-1.5">
+                <Label htmlFor="page-country">Country</Label>
+                <Input
+                  id="page-country"
+                  placeholder="US"
+                  {...register("country")}
+                />
+                {errors.country && (
+                  <p className="text-xs text-red-500">{errors.country.message}</p>
+                )}
+              </div>
 
               <Button
                 type="submit"
