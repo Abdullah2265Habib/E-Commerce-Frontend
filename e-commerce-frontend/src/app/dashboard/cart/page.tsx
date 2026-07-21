@@ -25,8 +25,6 @@ import {
   Minus,
   CreditCard,
   MapPin,
-  CheckCircle2,
-  ShoppingBag,
   ReceiptText,
 } from "lucide-react";
 import Link from "next/link";
@@ -36,9 +34,8 @@ import Link from "next/link";
 const checkoutSchema = z.object({
   street: z.string().trim().min(3, "Street is required"),
   city: z.string().trim().min(2, "City is required"),
-  state: z.string().trim().min(2, "State is required"),
   country: z.string().trim().min(2, "Country is required"),
-  zipCode: z.string().trim().min(3, "Zip / postal code is required"),
+  zip: z.string().trim().min(3, "Zip / postal code is required"),
 });
 
 type CheckoutFormValues = z.infer<typeof checkoutSchema>;
@@ -79,7 +76,6 @@ export default function CartPage() {
   } = useCart();
 
   const [isOrdering, setIsOrdering] = useState(false);
-  const [ordered, setOrdered] = useState(false);
 
   const {
     register,
@@ -91,9 +87,8 @@ export default function CartPage() {
     defaultValues: {
       street: "",
       city: "",
-      state: "",
       country: "",
-      zipCode: "",
+      zip: "",
     },
   });
 
@@ -127,7 +122,8 @@ export default function CartPage() {
 
     setIsOrdering(true);
     try {
-      const res = await fetch(
+      /* Step 1 – Create the order */
+      const orderRes = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/orders`,
         {
           method: "POST",
@@ -143,63 +139,68 @@ export default function CartPage() {
             shippingAddress: {
               street: values.street,
               city: values.city,
-              state: values.state,
               country: values.country,
-              zipCode: values.zipCode,
+              zip: values.zip,
             },
           }),
         }
       );
 
-      const data = await res.json();
+      const orderData = await orderRes.json();
 
-      if (!res.ok) {
+      if (!orderRes.ok) {
         toast.error(
-          Array.isArray(data.message)
-            ? data.message.join(", ")
-            : data.message || "Failed to place order"
+          Array.isArray(orderData.message)
+            ? orderData.message.join(", ")
+            : orderData.message || "Failed to place order"
         );
         return;
       }
 
-      toast.success("Order placed successfully!", {
-        icon: <CheckCircle2 className="h-4 w-4 text-green-500" />,
-        action: {
-          label: "View Orders",
-          onClick: () => (window.location.href = "/dashboard/orders"),
-        },
-      });
+      const orderId: string = orderData._id ?? orderData.id ?? orderData.data?._id;
+      if (!orderId) {
+        toast.error("Order was placed but could not retrieve order ID.");
+        return;
+      }
+
+      /* Step 2 – Create payment intent → get Stripe checkout URL */
+      const paymentRes = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/orders/${orderId}/payment-intent`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const paymentData = await paymentRes.json();
+
+      if (!paymentRes.ok) {
+        toast.error(
+          Array.isArray(paymentData.message)
+            ? paymentData.message.join(", ")
+            : paymentData.message || "Failed to initiate payment"
+        );
+        return;
+      }
 
       clearCart();
       reset();
-      setOrdered(true);
+
+      /* Step 3 – Redirect to Stripe checkout */
+      if (paymentData.url) {
+        window.location.href = paymentData.url;
+      } else {
+        toast.success("Order placed! Redirecting to payment…");
+      }
     } catch {
       toast.error("Something went wrong. Please try again.");
     } finally {
       setIsOrdering(false);
     }
   };
-
-  /* ── Success state ── */
-  if (ordered) {
-    return (
-      <div className="container max-w-2xl mx-auto py-16 flex flex-col items-center text-center gap-5">
-        <div className="p-5 bg-green-100 dark:bg-green-950/40 rounded-full">
-          <CheckCircle2 className="h-12 w-12 text-green-600" />
-        </div>
-        <h1 className="text-3xl font-bold tracking-tight">Order Placed!</h1>
-        <p className="text-muted-foreground max-w-sm">
-          Your order is being processed. Track it on the Orders page.
-        </p>
-        <Link href="/dashboard/orders">
-          <Button className="gap-2 mt-2">
-            <ShoppingBag className="h-4 w-4" />
-            Go to My Orders
-          </Button>
-        </Link>
-      </div>
-    );
-  }
 
   /* ── Empty state ── */
   if (items.length === 0) {
@@ -422,46 +423,19 @@ export default function CartPage() {
                   )}
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="page-state">State</Label>
+                  <Label htmlFor="page-zip">ZIP / Postal Code</Label>
                   <Input
-                    id="page-state"
-                    placeholder="NY"
-                    {...register("state")}
+                    id="page-zip"
+                    placeholder="10001"
+                    {...register("zip")}
                   />
-                  {errors.state && (
-                    <p className="text-xs text-red-500">{errors.state.message}</p>
+                  {errors.zip && (
+                    <p className="text-xs text-red-500">{errors.zip.message}</p>
                   )}
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <Label htmlFor="page-zip">ZIP Code</Label>
-                  <Input
-                    id="page-zip"
-                    placeholder="10001"
-                    {...register("zipCode")}
-                  />
-                  {errors.zipCode && (
-                    <p className="text-xs text-red-500">
-                      {errors.zipCode.message}
-                    </p>
-                  )}
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="page-country">Country</Label>
-                  <Input
-                    id="page-country"
-                    placeholder="US"
-                    {...register("country")}
-                  />
-                  {errors.country && (
-                    <p className="text-xs text-red-500">
-                      {errors.country.message}
-                    </p>
-                  )}
-                </div>
-              </div>
+
 
               <Button
                 type="submit"
