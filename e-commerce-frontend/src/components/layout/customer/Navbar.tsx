@@ -1,19 +1,11 @@
 "use client";
 
-import {
-  Bell,
-  Menu,
-  Search,
-  ShoppingCart,
-} from "lucide-react";
+import { Bell, Menu, Search } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { useCart } from "@/components/providers/cart-context";
 import { useSession } from "next-auth/react";
 
 export default function DashboardNavbar() {
-  const { totalItems, openDrawer } = useCart();
   const { data: session } = useSession();
 
   const user = session?.user as any;
@@ -45,22 +37,6 @@ export default function DashboardNavbar() {
 
       {/* Right */}
       <div className="flex items-center gap-3">
-        {/* Cart button */}
-        <Button
-          variant="ghost"
-          size="icon"
-          className="relative"
-          onClick={openDrawer}
-          aria-label="Open cart"
-          id="cart-drawer-trigger"
-        >
-          <ShoppingCart className="h-5 w-5" />
-          {totalItems > 0 && (
-            <Badge className="absolute -top-1 -right-1 h-5 min-w-5 rounded-full px-1 text-[10px] flex items-center justify-center pointer-events-none">
-              {totalItems > 99 ? "99+" : totalItems}
-            </Badge>
-          )}
-        </Button>
 
         {/* Notifications (placeholder) */}
         <Button variant="ghost" size="icon">

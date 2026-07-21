@@ -1,7 +1,6 @@
 import DashboardNavbar from "@/components/layout/customer/Navbar";
 import Sidebar from "@/components/layout/customer/Sidebar";
 import { CartProvider } from "@/components/providers/cart-context";
-import CartDrawer from "@/components/common/cart-drawer";
 
 export default async function AdminLayout({
   children,
@@ -19,9 +18,6 @@ export default async function AdminLayout({
           <main className="p-6">{children}</main>
         </div>
       </div>
-
-      {/* Global cart slide-out drawer */}
-      <CartDrawer />
     </CartProvider>
   );
 }

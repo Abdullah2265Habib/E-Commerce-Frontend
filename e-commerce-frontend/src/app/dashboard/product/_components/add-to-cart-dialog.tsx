@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -50,7 +51,8 @@ export default function AddToCartDialog({
   onOpenChange,
   product,
 }: AddToCartDialogProps) {
-  const { addItem, openDrawer } = useCart();
+  const { addItem } = useCart();
+  const router = useRouter();
   const schema = getAddToCartSchema(product?.stock ?? 0);
 
   const {
@@ -99,7 +101,7 @@ export default function AddToCartDialog({
       icon: <ShoppingCart className="h-4 w-4" />,
       action: {
         label: "View Cart",
-        onClick: openDrawer,
+        onClick: () => router.push("/dashboard/cart"),
       },
     });
 
