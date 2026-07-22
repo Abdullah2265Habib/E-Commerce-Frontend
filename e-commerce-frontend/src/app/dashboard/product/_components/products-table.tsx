@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
@@ -48,12 +48,19 @@ export default function ProductsTable({
   const [cartOpen, setCartOpen] = useState(false);
   const [wishlistLoading, setWishlistLoading] = useState<string | null>(null);
 
-  const handleAddToCart = (product: Product) => {
+  // Performance Hook: useCallback to memoize handler passed to child dialog & action buttons
+  const handleAddToCart = useCallback((product: Product) => {
     setSelectedProduct(product);
     setCartOpen(true);
-  };
+  }, []);
 
-  const handleAddToWishlist = async (product: Product) => {
+  // Performance Hook: useMemo to memoize products count & total inventory stock calculation
+  const totalStockOnPage = useMemo(() => {
+    return products.reduce((acc, p) => acc + p.stock, 0);
+  }, [products]);
+
+  // Performance Hook: useCallback to memoize wishlist operation
+  const handleAddToWishlist = useCallback(async (product: Product) => {
     try {
       setWishlistLoading(product._id);
       const token = (session as any)?.accessToken;
@@ -93,7 +100,7 @@ export default function ProductsTable({
     } finally {
       setWishlistLoading(null);
     }
-  };
+  }, [session]);
 
   return (
     <>

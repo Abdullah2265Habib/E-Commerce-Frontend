@@ -5,6 +5,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useState,
 } from "react";
 
@@ -117,8 +118,15 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const clearCart = useCallback(() => setItems([]), []);
 
-  const totalItems = items.reduce((s, i) => s + i.quantity, 0);
-  const totalPrice = items.reduce((s, i) => s + i.unitPrice * i.quantity, 0);
+
+  const totalItems = useMemo(
+    () => items.reduce((s, i) => s + i.quantity, 0),
+    [items]
+  );
+  const totalPrice = useMemo(
+    () => items.reduce((s, i) => s + i.unitPrice * i.quantity, 0),
+    [items]
+  );
 
   return (
     <CartContext.Provider
@@ -137,8 +145,11 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
+// Context Hook: Custom Hook exposing Context state and operations via useContext
 export function useCart(): CartContextValue {
   const ctx = useContext(CartContext);
   if (!ctx) throw new Error("useCart must be used inside <CartProvider>");
   return ctx;
 }
+
+export const useCartContext = useCart;

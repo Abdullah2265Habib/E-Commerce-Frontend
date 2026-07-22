@@ -3,10 +3,11 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useState } from "react";
+import { useState, useRef, useMemo, useCallback } from "react";
 import { toast } from "sonner";
 import { useSession } from "next-auth/react";
-import { useCart } from "@/components/providers/cart-context";
+// Context Hook: useCartContext custom context hook
+import { useCartContext } from "@/components/providers/cart-context";
 import {
   Accordion,
   AccordionContent,
@@ -64,6 +65,8 @@ function InfoTile({
 
 export default function CartPage() {
   const { data: session } = useSession();
+  
+  // Context Hook: Consuming cart state and methods using custom useContext hook
   const {
     items,
     totalItems,
@@ -71,9 +74,12 @@ export default function CartPage() {
     removeItem,
     updateQuantity,
     clearCart,
-  } = useCart();
+  } = useCartContext();
 
   const [isOrdering, setIsOrdering] = useState(false);
+
+  // Ref Hook: Reference to checkout form container
+  const checkoutFormRef = useRef<HTMLFormElement>(null);
 
   const {
     register,
@@ -90,26 +96,28 @@ export default function CartPage() {
     },
   });
 
+  // Performance Hook: useMemo to memoize grouped cart items calculation
+  const grouped = useMemo(() => {
+    return items.reduce<Record<string, typeof items>>((acc, item) => {
+      const cat = item.category || "Uncategorized";
+      if (!acc[cat]) acc[cat] = [];
+      acc[cat].push(item);
+      return acc;
+    }, {});
+  }, [items]);
 
-  const grouped = items.reduce<Record<string, typeof items>>((acc, item) => {
-    const cat = item.category || "Uncategorized";
-    if (!acc[cat]) acc[cat] = [];
-    acc[cat].push(item);
-    return acc;
-  }, {});
-
-  const handleQtyChange = (
-    productId: string,
-    delta: number,
-    currentQty: number
-  ) => {
-    if (currentQty + delta < 1) {
-      removeItem(productId);
-      return;
-    }
-    const result = updateQuantity(productId, currentQty + delta);
-    if (!result.ok) toast.error(result.message);
-  };
+  // Performance Hook: useCallback to memoize quantity change handler
+  const handleQtyChange = useCallback(
+    (productId: string, delta: number, currentQty: number) => {
+      if (currentQty + delta < 1) {
+        removeItem(productId);
+        return;
+      }
+      const result = updateQuantity(productId, currentQty + delta);
+      if (!result.ok) toast.error(result.message);
+    },
+    [removeItem, updateQuantity]
+  );
 
   const onSubmit = async (values: CheckoutFormValues) => {
     const token = (session as any)?.accessToken;
@@ -385,6 +393,7 @@ export default function CartPage() {
 
             {/* Checkout form */}
             <form
+              ref={checkoutFormRef}
               onSubmit={handleSubmit(onSubmit)}
               className="rounded-lg border bg-card shadow-sm p-5 space-y-4"
             >

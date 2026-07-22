@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -20,7 +20,8 @@ import { Label } from "@/components/ui/label";
 import { ShoppingCart, Package, DollarSign, Layers, BarChart2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import type { Product } from "./products-table";
-import { useCart } from "@/components/providers/cart-context";
+
+import { useCartContext } from "@/components/providers/cart-context";
 
 interface AddToCartDialogProps {
   open: boolean;
@@ -51,8 +52,13 @@ export default function AddToCartDialog({
   onOpenChange,
   product,
 }: AddToCartDialogProps) {
-  const { addItem } = useCart();
+  // Context Hook: Accessing cart context values
+  const { addItem } = useCartContext();
   const router = useRouter();
+
+  // Ref Hook: Reference to quantity input element for auto-focusing on dialog open
+  const quantityInputRef = useRef<HTMLInputElement | null>(null);
+
   const schema = getAddToCartSchema(product?.stock ?? 0);
 
   const {
@@ -66,47 +72,60 @@ export default function AddToCartDialog({
     defaultValues: { quantity: "1" },
   });
 
+  const { ref: registerRef, ...quantityRegister } = register("quantity");
+
   const quantity = parseInt(watch("quantity") || "1", 10);
-  const total = product ? product.price * (isNaN(quantity) ? 0 : quantity) : 0;
+
+  // Performance Hook: useMemo to memoize total price calculation
+  const total = useMemo(() => {
+    return product ? product.price * (isNaN(quantity) ? 0 : quantity) : 0;
+  }, [product, quantity]);
 
   useEffect(() => {
-    if (open) reset({ quantity: "1" });
+    if (open) {
+      reset({ quantity: "1" });
+      setTimeout(() => quantityInputRef.current?.focus(), 50);
+    }
   }, [open, reset]);
 
-  const handleAddToCart = (values: FormValues) => {
-    if (!product) return;
+  // Performance Hook: useCallback to memoize add to cart submit handler
+  const handleAddToCart = useCallback(
+    (values: FormValues) => {
+      if (!product) return;
 
-    const qty = parseInt(values.quantity, 10);
-    if (isNaN(qty) || qty < 1) {
-      toast.error("Please enter a valid quantity.");
-      return;
-    }
+      const qty = parseInt(values.quantity, 10);
+      if (isNaN(qty) || qty < 1) {
+        toast.error("Please enter a valid quantity.");
+        return;
+      }
 
-    const result = addItem({
-      productId: product._id,
-      productName: product.name,
-      unitPrice: product.price,
-      quantity: qty,
-      category: product.category,
-      imageUrl: product.images?.[0],
-      stock: product.stock,
-    });
+      const result = addItem({
+        productId: product._id,
+        productName: product.name,
+        unitPrice: product.price,
+        quantity: qty,
+        category: product.category,
+        imageUrl: product.images?.[0],
+        stock: product.stock,
+      });
 
-    if (!result.ok) {
-      toast.error(result.message);
-      return;
-    }
+      if (!result.ok) {
+        toast.error(result.message);
+        return;
+      }
 
-    toast.success(`Added to cart: ${product.name} (×${qty})`, {
-      icon: <ShoppingCart className="h-4 w-4" />,
-      action: {
-        label: "View Cart",
-        onClick: () => router.push("/dashboard/cart"),
-      },
-    });
+      toast.success(`Added to cart: ${product.name} (×${qty})`, {
+        icon: <ShoppingCart className="h-4 w-4" />,
+        action: {
+          label: "View Cart",
+          onClick: () => router.push("/dashboard/cart"),
+        },
+      });
 
-    onOpenChange(false);
-  };
+      onOpenChange(false);
+    },
+    [addItem, onOpenChange, product, router]
+  );
 
   if (!product) return null;
 
@@ -165,9 +184,8 @@ export default function AddToCartDialog({
               <BarChart2 className="h-3.5 w-3.5 text-blue-500" />
               <p className="text-xs text-muted-foreground">Stock</p>
               <p
-                className={`text-sm font-semibold ${
-                  product.stock === 0 ? "text-red-500" : "text-blue-600"
-                }`}
+                className={`text-sm font-semibold ${product.stock === 0 ? "text-red-500" : "text-blue-600"
+                  }`}
               >
                 {product.stock}
               </p>
@@ -176,9 +194,8 @@ export default function AddToCartDialog({
               <Layers className="h-3.5 w-3.5 text-purple-500" />
               <p className="text-xs text-muted-foreground">Status</p>
               <p
-                className={`text-sm font-semibold ${
-                  product.stock > 0 ? "text-green-600" : "text-red-500"
-                }`}
+                className={`text-sm font-semibold ${product.stock > 0 ? "text-green-600" : "text-red-500"
+                  }`}
               >
                 {product.stock > 0 ? "In Stock" : "Out"}
               </p>
@@ -196,7 +213,11 @@ export default function AddToCartDialog({
               max={product.stock}
               disabled={product.stock === 0}
               placeholder="1"
-              {...register("quantity")}
+              {...quantityRegister}
+              ref={(el) => {
+                registerRef(el);
+                quantityInputRef.current = el;
+              }}
             />
             {errors.quantity && (
               <p className="text-xs text-red-500">{errors.quantity.message}</p>
